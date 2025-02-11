@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>BlastGEN</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Orbitron:wght@700&family=Roboto:wght@900&display=swap');
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #d1c4e9; /* Light purple background */
+            color: #e0e0e0; /* Light text color */
+        }
+
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+            background-color: #1e1e1e; /* Dark container background */
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 50px;
+        }
+
+        header {
+            color: #fff;
+            background: #333;
+            padding: 20px 0;
+            border-bottom: #9c27b0 3px solid; /* Purple accent color */
+            position: relative;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin: 0;
+        }
+
+        .title-blast {
+            font-family: 'Orbitron', sans-serif;
+            color: #9c27b0; /* Purple color */
+        }
+
+        .title-gen {
+            font-family: 'Roboto', sans-serif;
+            color: #fff;
+        }
+
+        .content h2 {
+            text-align: center;
+            color: #9c27b0; /* Purple color */
+        }
+
+        .content img {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            border: 1px solid #444;
+            max-width: 100%;
+            border-radius: 8px;
+            padding: 5px;
+            background: #1e1e1e; /* Dark background */
+        }
+
+        .print-button {
+            display: block;
+            text-align: center;
+            background: #9c27b0; /* Purple accent color */
+            color: #121212; /* Dark text color */
+            padding: 10px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px auto;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: fit-content;
+        }
+
+        .print-button:hover {
+            background-color: #7b1fa2; /* Darker purple on hover */
+        }
+
+        footer {
+            background: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+            margin-top: 20px;
+            border-radius: 0 0 10px 10px;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #444;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #9c27b0; /* Purple accent color */
+            color: #121212; /* Dark text color */
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+
+        .image-separator {
+            margin-bottom: 20px;
+        }
+
+        @media print {
+    /* Ensure header and container margins are adjusted for printing */
+    header {
+        margin: 0;
+    }
+
+    .container {
+        margin: 0 1in; /* Set margin to 1in on the left and 0 on the right for print */
+    }
+
+    h2 {
+        margin: 0;
+    }
+
+    .print-button {
+        display: none; /* Hides the print button during printing */
+    }
+
+    .content img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    table, .center-print, .page-break {
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+    </style>
+    <script>
+        function printPage() {
+            window.print();
+        }
+    </script>
+</head>
+
+<body>
+    <header>
+        <h1><span class="title-blast">Blast</span><span class="title-gen">GEN</span></h1>
+    </header>
+
+    <div class="container content">
+        <h2>Blasting Summary Table</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>SPECIFICATIONS</th>
+                    <th>DESCRIPTION</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for spec, desc in summary_table %}
+                <tr>
+                    <td>{{ spec }}</td>
+                    <td>{{ desc }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="container content page-break">
+        {% if animation_html %}
+            <h2>Blasting Pattern Animation</h2>
+            <div class="center-print">{{ animation_html|safe }}</div>
+        {% else %}
+            <h2>Blasting Pattern</h2>
+            <img class="center-print image-separator" src="data:image/png;base64,{{ blasting_pattern }}" alt="Blasting Pattern">
+        {% endif %}
+
+        <h2>Single Hole Diagram</h2>
+        <img class="center-print" src="data:image/png;base64,{{ single_hole_diagram }}" alt="Single Hole Diagram">
+    </div>
+
+    {% if post_blast_image %}
+    <div class="container content page-break">
+        <h2>Post-Blasting Image</h2>
+        <img class="center-print" src="data:image/png;base64,{{ post_blast_image }}" alt="Post-Blast Image">
+    </div>
+    {% endif %}
+
+    <button onclick="printPage()" class="print-button">Print</button>
+</body>
+
+</html>

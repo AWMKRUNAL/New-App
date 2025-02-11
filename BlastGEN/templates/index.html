@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>BlastGEN</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@900&display=swap');
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #d1c4e9; /* Dark background */
+            color: #e0e0e0; /* Light text color */
+        }
+        .container {
+            width: 60%;
+            margin: auto;
+            overflow: hidden;
+            background: linear-gradient(145deg, #1e1e1e, #2a2a2a); /* Gradient background */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgb(19, 18, 18);
+            margin-top: 50px;
+        }
+        header {
+            background: #333;
+            color: #fff;
+            padding: 20px 0;
+            border-bottom: #9c27b0 3px solid; /* Purple accent color */
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+            position: relative;
+        }
+        header img {
+            height: 40px;
+            margin-left: 20px;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            left: 0;
+        }
+        header h1 {
+            font-size: 2.5em;
+            margin: 0;
+        }
+        .title-blast {
+            font-family: 'Orbitron', sans-serif;
+            color: #9c27b0; /* Purple color */
+        }
+        .title-gen {
+            font-family: 'Roboto', sans-serif;
+            color: #fff;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #444;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #9c27b0; /* Purple accent color */
+            color: #121212; /* Dark text color */
+        }
+        .center {
+            text-align: center;
+        }
+        .generate-button {
+            display: block;
+            width: 100%;
+            background-color: #9c27b0; /* Purple accent color */
+            color: #121212; /* Dark text color */
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s ease;
+        }
+        .generate-button:hover {
+            background-color: #7b1fa2; /* Darker purple on hover */
+        }
+        footer {
+            background: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+            margin-top: 20px;
+            border-radius: 0 0 10px 10px;
+        }
+    </style>
+    <script>
+        function updateForm() {
+            var patternType = document.getElementById('pattern_type').value;
+            var connectionType = document.getElementById('connection_type').value;
+            var connectionTypeRow = document.getElementById('connection_type_row');
+            var rowDelayRow = document.getElementById('row_delay_row');
+            var diagonalDelayRow = document.getElementById('diagonal_delay_row');
+            var animationRow = document.getElementById('animation_row');
+
+            if (patternType === 'staggered') {
+                connectionTypeRow.style.display = '';
+                if (connectionType === 'line' || connectionType === 'diagonal') {
+                    rowDelayRow.style.display = '';
+                    diagonalDelayRow.style.display = '';
+                    animationRow.style.display = '';
+                } else {
+                    rowDelayRow.style.display = 'none';
+                    diagonalDelayRow.style.display = 'none';
+                    animationRow.style.display = 'none';
+                }
+            } else {
+                connectionTypeRow.style.display = 'none';
+                rowDelayRow.style.display = 'none';
+                diagonalDelayRow.style.display = 'none';
+                animationRow.style.display = 'none';
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            updateForm();
+            document.getElementById('pattern_type').addEventListener('change', updateForm);
+            document.getElementById('connection_type').addEventListener('change', updateForm);
+        });
+    </script>
+</head>
+<body>
+    <header>
+        <img src="https://companieslogo.com/img/orig/ADANIPOWER.NS-1427c780.png?download-true.png" alt="Adani Logo">
+        <h1><span class="title-blast">Blast</span><span class="title-gen">GEN</span></h1>
+    </header>
+    <div class="container">
+        <form method="post" action="/calculate" enctype="multipart/form-data">
+            <table>
+                <tr>
+                    <th colspan="2" class="center">Enter Blasting Details</th>
+                </tr>
+                 <tr>
+                    <td><label for="mine_name">Mine Name:</label></td>
+                    <td><input type="text" id="mine_name" name="mine_name" required></td>
+                </tr>
+                 <tr>
+                    <td><label for="location">Location:</label></td>
+                    <td><input type="text" id="location" name="location" required></td>
+                </tr>
+                 <tr>
+                    <td><label for="date">Date:</label></td>
+                    <td><input type="date" id="date" name="date" required></td>
+                </tr>
+                <tr>
+                    <td><label for="pattern_type">Pattern Type:</label></td>
+                    <td>
+                        <select id="pattern_type" name="pattern_type">
+                            <option value="square">Square</option>
+                            <option value="staggered">Staggered</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr id="connection_type_row">
+                    <td><label for="connection_type">Connection Type:</label></td>
+                    <td>
+                        <select id="connection_type" name="connection_type">
+                            <option value="none">None</option>
+                            <option value="line">Line</option>
+                            <option value="diagonal">Diagonal</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="num_holes">Number of Holes:</label></td>
+                    <td><input type="number" id="num_holes" name="num_holes" min="1" max="1000" required></td>
+                </tr>
+                <tr>
+                    <td><label for="burden">Burden (m): </label></td>
+                    <td><input type="number" step="0.01" id="burden" name="burden" min="1" max="15" required></td>
+                </tr>
+                <tr>
+                    <td><label for="spacing">Spacing (m): </label></td>
+                    <td><input type="number" step="0.01" id="spacing" name="spacing" min="1" max="15" required></td>
+                </tr>
+                <tr>
+                    <td><label for="num_rows">Number of Rows:</label></td>
+                    <td><input type="number" id="num_rows" name="num_rows" min="1" max="20" required></td>
+                </tr>
+                <tr>
+                    <td><label for="diameter_mm">Hole Diameter (mm):</label></td>
+                    <td><input type="number" step="0.01" id="diameter_mm" name="diameter_mm" min="10" max="500" required></td>
+                </tr>
+                <tr>
+                    <td><label for="depth_m">Hole Depth (m): </label></td>
+                    <td><input type="number" step="0.01" id="depth_m" name="depth_m" min="1" max="50" required></td>
+                </tr>
+                <tr>
+                    <td><label for="explosive_type">Explosive Type:</label></td>
+                    <td><input type="text" id="explosive_type" name="explosive_type" required></td>
+                </tr>
+                <tr>
+                    <td><label for="explosive_density_g_cm3">Explosive Density (g/cm³):</label></td>
+                    <td><input type="number" step="0.01" id="explosive_density_g_cm3" name="explosive_density_g_cm3" min="1" max="10" required></td>
+                </tr>
+                <tr>
+                    <td><label for="explosive_quantity_kg">Explosive Quantity (kg) per hole:</label></td>
+                    <td><input type="number" step="0.01" id="explosive_quantity_kg" name="explosive_quantity_kg" min="5" max="200" required></td>
+                </tr>
+                <tr>
+    		    <td><label for="nonel_length_m">Nonel Length (m):</label></td>
+                <td><input type="number" step="0.01" id="nonel_length_m" name="nonel_length_m" min="1" max="15" required></td>
+                </tr>
+                <tr>
+                    <td><label for="booster_quantity_g">Booster Quantity (g):</label></td>
+                    <td><input type="number" step="0.01" id="booster_quantity_g" name="booster_quantity_g" min="1" max="10000" required></td>
+                </tr>
+                <tr>
+                    <td><label for="rock_density">Rock Density:</label></td>
+                    <td><input type="number" step="0.01" id="rock_density" name="rock_density" min="1" max="100" required></td>
+                </tr>
+                <tr>
+                    <td><label for="distance">Distance to Measurement Point (m):</label></td>
+                    <td><input type="number" step="0.01" id="distance" name="distance" min="1" max="1000" required></td>
+                </tr>
+                <tr>
+                    <td><label for="k_constant">K Constant:</label></td>
+                    <td><input type="number" step="0.01" id="k_constant" name="k_constant" min="0.1" max="1000" required></td>
+                </tr>
+                <tr>
+                    <td><label for="e_constant">E Constant:</label></td>
+                    <td><input type="number" step="0.01" id="e_constant" name="e_constant" min="0.1" max="1000" required></td>
+                </tr>
+                <tr id="row_delay_row">
+                    <td><label for="row_delay">Row Delay (ms):</label></td>
+                    <td><input type="number" step="0.01" id="row_delay" name="row_delay" min="0" max="1000"></td>
+                </tr>
+                <tr id="diagonal_delay_row">
+                    <td><label for="diagonal_delay">Diagonal Delay (ms):</label></td>
+                    <td><input type="number" step="0.01" id="diagonal_delay" name="diagonal_delay" min="0" max="1000"></td>
+                </tr>
+                <tr id="animation_row">
+                    <td><label for="user_input">Simulation:</label></td>
+                    <td>
+                        <select id="user_input" name="user_input">
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="explosive_cost_kg">Explosive Cost per Kg (₹):</label></td>
+                    <td><input type="number" step="0.1" id="explosive_cost_kg" name="explosive_cost_kg" min="0" required></td>
+                </tr>
+                 <tr>
+                    <td><label for="booster_cost_kg">Booster Cost per Kg (₹):</label></td>
+                    <td><input type="number" step="0.1" id="booster_cost_kg" name="booster_cost_kg" min="0" required></td>
+                </tr>
+                 <tr>
+                    <td><label for="nonel_cost_m">Nonel Cost per Meter (₹):</label></td>
+                    <td><input type="number" step="0.1" id="nonel_cost_m" name="nonel_cost_m" min="0" required></td>
+                </tr>
+                <tr>
+                    <td><label for="post_blast_image">Post-Blast Image:</label></td>
+                    <td><input type="file" id="post_blast_image" name="post_blast_image" accept="image/*"></td>
+                </tr>
+            </table>
+            <button type="submit" class="generate-button">Generate</button>
+        </form>
+    </div>
+
+    <footer>
+        Krunal Chulbulkar @ Technology Department
+    </footer>
+
+</body>
+</html>

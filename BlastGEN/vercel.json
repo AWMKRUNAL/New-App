@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "functions": {
+    "app.py": {
+      "runtime": "@vercel/python",
+      "maxDuration": 10,
+      "memory": 512
+    }
+  },
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "app.py"
+    }
+  ],
+  "env": {
+    "PYTHONUNBUFFERED": "1",
+    "FLASK_ENV": "production",
+    "SECRET_KEY": "your_secret_key_placeholder",
+    "DATABASE_URL": "sqlite:///users.db",
+    "UPLOAD_FOLDER": "uploads/",
+    "FLASK_RUN_PORT": "5000"
+  },
+  "installCommand": "pip install -r requirements.txt",
+  "buildCommand": null
+}
