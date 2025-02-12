@@ -1,60 +1,16 @@
 import base64
-import os
 from io import BytesIO
-from flask import Flask, render_template, redirect, url_for, request, flash
-from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin
+
 import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
-from flask import Flask, render_template, redirect, url_for, request, flash
-from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin
-from flask import Flask, render_template
-from flask import request
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask import Flask, render_template, request
 from matplotlib.animation import FuncAnimation
 
 matplotlib.rcParams['animation.embed_limit'] = 2**128
 
 app = Flask(__name__)
-
-app.secret_key = 'your_secret_key'  # Set a secret key for security purposes
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-db = SQLAlchemy(app)
-
-
-# Define the User model
-class User(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), unique=True, nullable=False)
-    email = db.Column(db.String(150), unique=True, nullable=False)
-    employee_id = db.Column(db.String(50), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-with app.app_context():
-    db.create_all()
-
-
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-UPLOAD_FOLDER = 'uploads/'  # Define your upload folder
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
+#function definitions
 def calculate_charge_height(rock_density, explosive_density, hole_length):
     return (rock_density / explosive_density)* hole_length
 
@@ -219,63 +175,7 @@ def create_animation (fig, ax, scatter, delays):
     anim = FuncAnimation(fig, animate, frames=int(max(delays)) + 10, interval= 100)
     plt.close()
     return anim
-
-
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
-    if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
-        employee_id = request.form['employee_id']
-        password = request.form['password']
-        confirm_password = request.form['confirm_password']
-
-        if password != confirm_password:
-            flash('Passwords do not match.', 'alert-signup')
-            return redirect(url_for('signup'))
-
-        if User.query.filter_by(username=username).first() is not None:
-            flash('User already exists.', 'alert-signup')
-            return redirect(url_for('signup'))
-
-        new_user = User(username=username, email=email, employee_id=employee_id)
-        new_user.set_password(password)
-        db.session.add(new_user)
-        db.session.commit()
-        flash('Signup successful. You can now log in.', 'alert-login')
-        return redirect(url_for('login'))
-
-    return render_template('login.html')
-
-
-# Secure the route with login required
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    flash('You have been logged out.')
-    return redirect(url_for('login'))
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user = User.query.filter_by(username=username).first()
-
-        if user is None or not user.check_password(password):
-            flash('Invalid username or password.')
-            return redirect(url_for('login'))
-
-        login_user(user)
-        flash('Logged in successfully.')
-        return redirect(url_for('index'))
-
-    return render_template('login.html')
-
 @app.route('/')
-@login_required
 def index():
     return render_template('index.html')
 
@@ -292,7 +192,6 @@ def calculate():
     num_rows = int(request.form['num_rows'])
     diameter_mm = float(request.form['diameter_mm'])
     depth_m = float(request.form['depth_m'])
-    explosive_type = request.form['explosive_type']
     explosive_density_g_cm3 = float(request.form['explosive_density_g_cm3'])
     explosive_quantity_kg = float(request.form['explosive_quantity_kg'])
     nonel_length_m = float(request.form['nonel_length_m'])
@@ -307,6 +206,10 @@ def calculate():
     explosive_cost_kg = float(request.form['explosive_cost_kg'])
     booster_cost_kg = float(request.form['booster_cost_kg'])
     nonel_cost_m = float(request.form['nonel_cost_m'])
+
+
+
+
     total_explosive_quantity_kg = explosive_quantity_kg*num_holes
     total_booster_quantity_g = booster_quantity_g*num_holes
     volume_of_patch_m3 = depth_m*spacing*burden*num_holes
@@ -314,25 +217,16 @@ def calculate():
     charge_per_hole = explosive_quantity_kg + booster_quantity_g/1000
     ppv = calculate_ppv(distance,charge_per_hole,k_constant,e_constant)
     mean_fragmentation_size = 8 * (burden*spacing*depth_m/charge_per_hole )**0.8* charge_per_hole **0.167
+
     total_explosive_cost= total_explosive_quantity_kg*explosive_cost_kg
     total_booster_cost = (total_booster_quantity_g / 1000) *booster_cost_kg
     total_nonel_length = 0
     if pattern_type == 'staggered' and connection_type != 'none':
         total_nonel_length = (num_holes * spacing) + (num_holes * nonel_length_m)
 
-    total_blasting_cost = total_explosive_cost + total_booster_cost + total_nonel_length * nonel_cost_m
+    total_blasting_cost = total_explosive_cost + total_booster_cost + total_nonel_length
 
-    post_blast_image = request.files.get('post_blast_image')
-    post_blast_image_base64 = None
 
-    if post_blast_image and post_blast_image.filename != '':
-        image_path = os.path.join(app.config['UPLOAD_FOLDER'], post_blast_image.filename)
-        post_blast_image.save(image_path)  # Save image to the upload folder
-
-        # Read and encode the image to base64
-        with open(image_path, 'rb') as f:
-            img_byte_stream = f.read()
-            post_blast_image_base64 = base64.b64encode(img_byte_stream).decode('utf-8')
 
 #Generate summary table
     data_summary = {
@@ -345,7 +239,6 @@ def calculate():
             'Burden (m)',
             'Hole Diameter (mm)',
             'Hole Depth (m)',
-            'Explosive Type',
             'Total Explosive Quantity (Kg)',
             'Total Booster Quantity (g)',
             'Volume of Patch (m3)',
@@ -364,7 +257,6 @@ def calculate():
             burden,
             diameter_mm,
             depth_m,
-            explosive_type,
             round(total_explosive_quantity_kg,3),
             round(total_booster_quantity_g,3),
             round(volume_of_patch_m3,3),
@@ -423,24 +315,24 @@ def calculate():
     stemming_distance_m = depth_m - charge_height
     
     fig, ax = plt.subplots()
-    charge = plt.Rectangle((0.5-diameter_mm/2000, depth_m- charge_height), diameter_mm/1000,charge_height, edgecolor='black',facecolor='black', label='Explosive Charge')
+    charge = plt.Rectangle((0.5-diameter_mm/2000, depth_m- charge_height), diameter_mm/1000,charge_height, edgecolor='black',facecolor='red', label='Explosive Charge')
     ax.add_patch(charge)
-    stemming = plt.Rectangle((0.5-diameter_mm/2000,0), diameter_mm /1000, stemming_distance_m, edgecolor='black',facecolor='grey', label='Stemming Distance')
+    stemming = plt.Rectangle((0.5-diameter_mm/2000,0), diameter_mm /1000, stemming_distance_m, edgecolor='black',facecolor='green', label='Stemming Distance')
     ax.add_patch(stemming)
     void_space_height = depth_m- charge_height - stemming_distance_m
     void_space = plt.Rectangle((0.5 - diameter_mm/ 2000, stemming_distance_m), diameter_mm/ 1000, void_space_height, edgecolor='black',facecolor='none', label='Void Space')
     ax.add_patch(void_space)
     nonel_line_length =nonel_length_m
-    nonel_line = plt.Line2D([0.5] * 2, [depth_m- nonel_line_length, depth_m - 0.2], color='orange', linewidth = 2, label='Nonel Line')
+    nonel_line = plt.Line2D([0.5] * 2, [depth_m- nonel_line_length, depth_m - 0.2], color='black', linewidth = 2, label='Nonel Line')
     ax.add_line(nonel_line)
     booster_square = plt.Rectangle((0.5 - diameter_mm/2000 /2, depth_m-0.2), diameter_mm/1000, 0.2, edgecolor = 'black' , facecolor ='yellow', label = 'Booster')
     ax.add_patch(booster_square)
     arrowprops = dict(facecolor='black', shrink=0.05, width = 1)
     ax.annotate(f'Depth: {depth_m} m', xy=(0.5+ diameter_mm / 2000 / 2, depth_m),xytext=(1.5, depth_m),arrowprops=arrowprops, ha='center')
     
-    ax.annotate(f'Charge Height:{charge_height:.2f} m', xy=(0.5 + diameter_mm/ 2000 /2, depth_m - charge_height / 2), xytext = (1.5, depth_m - charge_height / 2), arrowprops=dict(facecolor='black',shrink = 0.05, width = 1), ha='center', color = 'black')
+    ax.annotate(f'Charge Height:{charge_height:.2f} m', xy=(0.5 + diameter_mm/ 2000 /2, depth_m - charge_height / 2), xytext = (1.5, depth_m - charge_height / 2), arrowprops=dict(facecolor='red',shrink = 0.05, width = 1), ha='center', color = 'red')
     
-    ax.annotate(f'Stemming Distance:{stemming_distance_m:.2f} m', xy=(0.5 + diameter_mm / 2000 /2, stemming_distance_m/ 2), xytext = (1.5, stemming_distance_m/ 2), arrowprops=dict(facecolor='grey',shrink = 0.05, width = 1), ha='center', color = 'black')
+    ax.annotate(f'Stemming Distance:{stemming_distance_m:.2f} m', xy=(0.5 + diameter_mm / 2000 /2, stemming_distance_m/ 2), xytext = (1.5, stemming_distance_m/ 2), arrowprops=dict(facecolor='green',shrink = 0.05, width = 1), ha='center', color = 'green')
     
     ax.set_ylim(depth_m+ 1, -1)
     ax.set_xlim(0, 3)
@@ -469,8 +361,7 @@ def calculate():
     #if user_input == 'yes':
         #anim = create_animation(fig, ax, scatter, delays)
         #animation_html = anim.to_jshtml()
-    return render_template('plot.html',summary_table= df_summary.values,blasting_pattern=blasting_pattern_base64,single_hole_diagram=single_hole_diagram_base64,animation_html=animation_html,post_blast_image=post_blast_image_base64)
+    return render_template('plot.html',summary_table= df_summary.values,blasting_pattern=blasting_pattern_base64,single_hole_diagram=single_hole_diagram_base64,animation_html=animation_html)
 
 if __name__ == '__main__':
-    db.create_all()
-    app.run()
+    app.run(debug=True)
