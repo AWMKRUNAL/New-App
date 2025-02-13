@@ -20,67 +20,6 @@ matplotlib.rcParams['animation.embed_limit'] = 2**128
 
 app = Flask(__name__)
 
-app.secret_key = 'your_secret_key'  # Set a secret key for security purposes
-
-# MySQL database configuration
-db_config = {
-    'user': 'krunal',
-    'password': 'adani@123',
-    'host': '10.81.92.26',
-    'database': 'BlastGEN',
-    'port': '3312'
-}
-
-# Define the User model
-class User(UserMixin):
-    def __init__(self, id, username, email, employee_id, password_hash):
-        self.id = id
-        self.username = username
-        self.email = email
-        self.employee_id = employee_id
-        self.password_hash = password_hash
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
-def get_db_connection():
-    return mysql.connector.connect(**db_config)
-
-def create_user_table():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            username VARCHAR(150) UNIQUE NOT NULL,
-            email VARCHAR(150) UNIQUE NOT NULL,
-            employee_id VARCHAR(50) UNIQUE NOT NULL,
-            password_hash VARCHAR(256) NOT NULL
-        )
-    ''')
-    conn.commit()
-    cursor.close()
-    conn.close()
-
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-
-
-@login_manager.user_loader
-def load_user(user_id):
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
-    user_data = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    if user_data:
-        return User(**user_data)
-    return None
 
 UPLOAD_FOLDER = 'uploads/'  # Define your upload folder
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -251,71 +190,7 @@ def create_animation (fig, ax, scatter, delays):
     return anim
 
 
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
-    if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
-        employee_id = request.form['employee_id']
-        password = request.form['password']
-        confirm_password = request.form['confirm_password']
-        if password != confirm_password:
-            flash('Passwords do not match.', 'alert-signup')
-            return redirect(url_for('signup'))
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
-        if cursor.fetchone():
-            flash('User already exists.', 'alert-signup')
-            cursor.close()
-            conn.close()
-            return redirect(url_for('signup'))
-        password_hash = generate_password_hash(password)
-        cursor.execute('''
-            INSERT INTO users (username, email, employee_id, password_hash)
-            VALUES (%s, %s, %s, %s)
-        ''', (username, email, employee_id, password_hash))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        flash('Signup successful. You can now log in.', 'alert-login')
-        return redirect(url_for('login'))
-    return render_template('login.html')
-
-
-# Secure the route with login required
-
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    flash('You have been logged out.')
-    return redirect(url_for('login'))
-
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
-        user_data = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        if user_data is None or not check_password_hash(user_data['password_hash'], password):
-            flash('Invalid username or password.')
-            return redirect(url_for('login'))
-        user = User(**user_data)
-        login_user(user)
-        flash('Logged in successfully.')
-        return redirect(url_for('index'))
-    return render_template('login.html')
-
 @app.route('/')
-@login_required
 def index():
     return render_template('index.html')
 
@@ -512,5 +387,4 @@ def calculate():
     return render_template('plot.html',summary_table= df_summary.values,blasting_pattern=blasting_pattern_base64,single_hole_diagram=single_hole_diagram_base64,animation_html=animation_html,post_blast_image=post_blast_image_base64)
 
 if __name__ == '__main__':
-    create_user_table()
     app.run()
