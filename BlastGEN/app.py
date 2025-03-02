@@ -15,6 +15,8 @@ from flask import request
 from werkzeug.security import generate_password_hash, check_password_hash
 from matplotlib.animation import FuncAnimation
 import mysql.connector
+import plotly.graph_objects as go
+import numpy as np
 
 matplotlib.rcParams['animation.embed_limit'] = 2**128
 
