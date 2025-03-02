@@ -173,21 +173,88 @@ def plot_blasting_pattern(positions, burden, spacing, num_rows, connection_type,
                loc='upper left')
     return fig, ax, scatter, delays
 
-def create_animation (fig, ax, scatter, delays):
-    def animate(frame):
-        scatter.set_color(['red' if frame >= delay else 'blue' for delay in delays])
-        sizes = [400 if frame >= delay else 100 for delay in delays]
-        shapes = ['*' if frame >= delay else 'o' for delay in delays]
+def create_animation_plotly(positions, delays):
+    # Validate inputs
+    if not isinstance(delays, (list, np.ndarray)) or not all(isinstance(delay, (int, float)) for delay in delays):
+        raise TypeError("Invalid delays: Expected a list or array of numeric values.")
 
-        scatter.set_sizes(sizes)
-        paths = [plt.matplotlib.markers.MarkerStyle(shape).get_path().transformed(plt.matplotlib.markers.MarkerStyle(shape).get_transform()) for shape in shapes]
-        scatter.set_paths(paths)
-        if frame == max(delays):
-            scatter.set_color('red')
+    if len(positions) != len(delays):
+        raise ValueError("Mismatched positions and delays: lengths must match.")
 
-    anim = FuncAnimation(fig, animate, frames=int(max(delays)) + 10, interval= 100)
-    plt.close()
-    return anim
+    # Calculate maximum frame for the animation
+    max_frame = int(max(delays)) + 10
+    frames = []
+
+    # Extract x and y coordinates from positions
+    x = [pos[0] for pos in positions]
+    y = [pos[1] for pos in positions]
+
+    # Generate frames for Plotly animation
+    for frame in range(max_frame):
+        # Determine colors and sizes based on frame number and delays
+        colors = ['red' if frame >= delay else 'blue' for delay in delays]
+        sizes = [40 if frame >= delay else 20 for delay in delays]
+
+        # Append the data for this frame
+        frames.append(go.Frame(
+            data=[
+                go.Scatter(
+                    x=x,
+                    y=y,
+                    mode='markers',
+                    marker=dict(
+                        color=colors,
+                        size=sizes
+                    )
+                )
+            ],
+            name=str(frame)
+        ))
+
+    # Create the base figure
+    fig = go.Figure(
+        data=[
+            go.Scatter(
+                x=x,
+                y=y,
+                mode='markers',
+                marker=dict(
+                    color=['blue'] * len(delays),  # Initial colors
+                    size=[20] * len(delays)  # Initial sizes
+                )
+            )
+        ],
+        layout=go.Layout(
+
+            updatemenus=[{
+                "buttons": [
+                    {
+                        "args": [None, {"frame": {"duration": 100, "redraw": True}, "fromcurrent": True}],
+                        "label": "Play",
+                        "method": "animate"
+                    },
+                    {
+                        "args": [[None], {"frame": {"duration": 0, "redraw": True}, "mode": "immediate",
+                                          "transition": {"duration": 0}}],
+                        "label": "Pause",
+                        "method": "animate"
+                    }
+                ],
+                "direction": "left",
+                "pad": {"r": 10, "t": 87},
+                "showactive": False,
+                "type": "buttons",
+                "x": 0.1,
+                "xanchor": "right",
+                "y": 0,
+                "yanchor": "top"
+            }]
+        ),
+        frames=frames
+    )
+
+    # Return the Plotly figure
+    return fig
 
 
 @app.route('/')
@@ -321,8 +388,8 @@ def calculate():
     animation_html = None
     blasting_pattern_base64 = None
     if user_input == 'yes':
-        anim = create_animation(fig, ax, scatter, delays)
-        animation_html = anim.to_jshtml()
+        anim_fig = create_animation_plotly(positions, delays)
+        animation_html = anim_fig.to_html(full_html=False)
     else:
         blasting_pattern_img = BytesIO()
         plt.savefig(blasting_pattern_img, format='png')
