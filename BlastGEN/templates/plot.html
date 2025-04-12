@@ -119,22 +119,62 @@
         }
 
         @media print {
-    /* Ensure header and container margins are adjusted for printing */
-    header {
-        margin: 0;
+    /* Adjust body text for clarity on print */
+    body {
+        color: #000000; /* Black text for better visibility */
+        background-color: #ffffff !important; /* White background for printing */
+        font-size: 12px; /* Adjust default font size for print */
+        line-height: 1.4; /* Improve readability on print */
     }
 
+    header {
+        font-size: 14px; /* Make header text smaller */
+        color: #000000; /* Ensure header text is black */
+    }
+
+    /* Table adjustments for fitting on one page */
+    table {
+        width: 100%; /* Ensure table fits inside A4 width */
+        font-size: 10px; /* Reduce table font size */
+        border-collapse: collapse; /* Remove spacing between cells */
+    }
+
+    th, td {
+        padding: 5px; /* Reduce padding to save space */
+    }
+
+    th {
+        color: #ffffff; /* White text for table headers */
+        background-color: #000000; /* Black header background for contrast */
+    }
+
+    td {
+        word-wrap: break-word; /* Ensure long cell content wraps within cell */
+        text-align: left; /* Align text to the left */
+    }
+
+    /* Fit table and other content vertically on A4 */
     .container {
-        margin: 0 1in; /* Set margin to 1in on the left and 0 on the right for print */
+        margin: 0.5in auto; /* Adjust container margins for print */
+        padding: 0.2in; /* Reduce internal spacing */
     }
 
     h2 {
-        margin: 0;
+        font-size: 14px; /* Reduce size of headings */
+        margin: 10px 0; /* Reduce vertical margin */
     }
 
-    .print-button {
-        display: none; /* Hides the print button during printing */
+    /* Force all table content on a single page */
+    table {
+        page-break-inside: avoid; /* Prevent table row breaks between pages */
     }
+
+    /* Hide unnecessary buttons or elements for printing */
+    .print-button {
+        display: none; /* Hide the print button */
+    }
+}
+
 
     .content img {
         display: block;
@@ -146,7 +186,7 @@
         margin-left: auto;
         margin-right: auto;
     }
-}
+
     </style>
     <script>
         function printPage() {
@@ -161,7 +201,7 @@
     </header>
 
     <div class="container content">
-        <h2>Blasting Summary Table</h2>
+        <h2>Blasting Summary</h2>
         <table>
             <thead>
                 <tr>
