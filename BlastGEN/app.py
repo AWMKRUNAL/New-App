@@ -1,22 +1,18 @@
 import base64
 import os
 from io import BytesIO
-from flask import Flask, render_template, redirect, url_for, request, flash
-from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin
+from tkinter import Image
+
+from PIL import Image,ImageDraw,ImageFont
 import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
-from flask import Flask, render_template, redirect, url_for, request, flash
+from flask import Flask, render_template
+from flask import redirect, url_for, flash
+from flask import request
+from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import LoginManager, login_user, login_required, logout_user, UserMixin
-from flask import Flask, render_template
-from flask import request
-from werkzeug.security import generate_password_hash, check_password_hash
-from matplotlib.animation import FuncAnimation
-import mysql.connector
-import plotly.graph_objects as go
-import numpy as np
 
 matplotlib.rcParams['animation.embed_limit'] = 2**128
 
@@ -38,9 +34,9 @@ def generate_blasting_pattern(pattern_type, num_holes, burden, spacing, num_rows
     cols = num_holes // num_rows
     for i in range(num_rows):
         for j in range(cols):
-            if pattern_type == 'square':
+            if pattern_type == 'Square':
                 positions.append((j * spacing, i * spacing))
-            elif pattern_type == 'staggered':
+            elif pattern_type == 'Staggered':
                 x_offset = j * spacing + (spacing / 2 if i % 2 == 1 else 0)
                 positions.append((x_offset, i * burden))
             else:
@@ -49,7 +45,7 @@ def generate_blasting_pattern(pattern_type, num_holes, burden, spacing, num_rows
 
 
 def plot_blasting_pattern(positions, burden, spacing, num_rows, connection_type, row_delay=None, diagonal_delay=None,
-                          pattern_type=None):
+                          pattern_type=None,free_faces=[]):
     x, y = zip(*positions)
     fig,ax = plt.subplots(figsize=(12, 6))
     #ax.set_title('Blasting Pattern')
@@ -77,15 +73,50 @@ def plot_blasting_pattern(positions, burden, spacing, num_rows, connection_type,
                 else:
                     delays[i] = delays[i-1] + row_delay
 
-    #if connection_type != 'none' and pattern_type !='square':
-        #for i, (x_pos, y_pos) in enumerate(positions):
-            #ax.text(x_pos, y_pos, f'{delays[i]} ms' if delays[i] is not None else '',fontsize = 8, ha = 'right')
+ 
 
     ax.grid(False)
     ax.set_xlim(-spacing, max(x) + spacing)
     ax.set_ylim(-spacing, max(y) + burden + 10)
     ax.set_aspect('equal', adjustable = 'box')
 
+    def draw_parallelogram(ax, x_start, y_start, length, height, color='grey', text=None, rotation=0):
+        parallelogram = plt.Polygon(
+            [(x_start, y_start),
+             (x_start + length, y_start),
+             (x_start + length, y_start + height),
+             (x_start, y_start + height)],
+            closed=True, color=color, alpha=0.5)
+        ax.add_patch(parallelogram)
+
+        # Add rotated text inside the parallelogram if provided
+        if text:
+            ax.text(
+                x_start + length / 2,
+                y_start + height / 2,
+                text,
+                ha='center', va='center',  # Center alignment remains for rotation
+                rotation=rotation,  # Rotate text
+                fontsize=10, color='black', fontweight='bold'
+            )
+
+    row_length = (len(positions) // num_rows) * spacing
+
+    if 'top' in free_faces:
+        # Text for top is not rotated
+        draw_parallelogram(ax, 0, max(y) + burden / 2, row_length, burden / 2, text="Front Free Face", rotation=0)
+
+    if 'bottom' in free_faces:
+        # Text for bottom is not rotated
+        draw_parallelogram(ax, 0, min(y) - burden, row_length, burden / 2, text="Back Free Face", rotation=0)
+
+    if 'left' in free_faces:
+        # Text for left is rotated 90 degrees clockwise
+        draw_parallelogram(ax, min(x) - burden, min(y), burden / 2, max(y) - min(y), text="Left Free Face", rotation=-90)
+
+    if 'right' in free_faces:
+        # Text for right is rotated 90 degrees counterclockwise
+        draw_parallelogram(ax, max(x) + burden / 2, min(y), burden / 2, max(y) - min(y), text="Right Free Face", rotation=90)
 
     arrows = []
     def add_arrow(start_x,start_y,end_x,end_y,color):
@@ -94,7 +125,7 @@ def plot_blasting_pattern(positions, burden, spacing, num_rows, connection_type,
 
 
 
-    if connection_type == 'diagonal':
+    if connection_type == 'Diagonal':
         for i in range(len(positions) - 1):
             if y[i] == y[i + 1] and y[i] == (num_rows - 1) * burden:
                 add_arrow(x[i], y[i], x[i+1], y[i],'black')
@@ -152,7 +183,7 @@ def plot_blasting_pattern(positions, burden, spacing, num_rows, connection_type,
                     if y[j] == min(y) and x[j] == max(x):
                         add_arrow(x[j - 1], y[j - 1], x[j] , y[j], 'black')
 
-    elif connection_type == 'line':
+    elif connection_type == 'Line':
         for row in range(num_rows):
             row_positions = [pos for pos in positions if pos[1] == row * burden]
             for i in range(len(row_positions) - 1):
@@ -168,12 +199,16 @@ def plot_blasting_pattern(positions, burden, spacing, num_rows, connection_type,
                     if (next_x, next_y) in positions:
                         add_arrow(current_x, current_y, next_x, next_y, 'red')
                         break
-    if connection_type != 'none' and pattern_type != 'square':
+    if connection_type != 'None' and pattern_type != 'Square':
         black_arrow = plt.Line2D([0], [0], color='black', lw=2)
         red_arrow = plt.Line2D([0], [0], color='red', lw=2)
         ax.legend([black_arrow, red_arrow], [f'Row wise delay:{row_delay} ms', f'Diagonal delay:{diagonal_delay} ms'],
                loc='upper left')
     return fig, ax, scatter, delays
+
+import plotly.graph_objects as go
+import numpy as np
+
 
 def create_animation_plotly(positions, delays):
     # Validate inputs
@@ -268,6 +303,10 @@ def calculate():
     mine_name = request.form['mine_name']
     location = request.form['location']
     date_str = request.form['date']
+    free_faces = request.form.getlist('free_face[]')
+    time_str = request.form['time']
+    Latitude = float(request.form['Latitude'])
+    Longitude = float(request.form['Longitude'])
     pattern_type= request.form['pattern_type']
     connection_type= request.form.get('connection_type', 'none')
     num_holes = int(request.form['num_holes'])
@@ -278,7 +317,7 @@ def calculate():
     depth_m = float(request.form['depth_m'])
     explosive_type = request.form['explosive_type']
     explosive_density_g_cm3 = float(request.form['explosive_density_g_cm3'])
-    explosive_quantity_kg = float(request.form['explosive_quantity_kg'])
+    total_explosive_quantity_kg = float(request.form['total_explosive_quantity_kg'])
     nonel_length_m = float(request.form['nonel_length_m'])
     booster_quantity_g = float(request.form['booster_quantity_g'])
     rock_density = float(request.form['rock_density'])
@@ -291,8 +330,8 @@ def calculate():
     explosive_cost_kg = float(request.form['explosive_cost_kg'])
     booster_cost_kg = float(request.form['booster_cost_kg'])
     nonel_cost_m = float(request.form['nonel_cost_m'])
-    total_explosive_quantity_kg = explosive_quantity_kg*num_holes
-    total_booster_quantity_g = booster_quantity_g*num_holes
+    explosive_quantity_kg = total_explosive_quantity_kg / num_holes
+    total_booster_quantity_g = booster_quantity_g *num_holes
     volume_of_patch_m3 = depth_m*spacing*burden*num_holes
     powder_factor = volume_of_patch_m3/(total_explosive_quantity_kg + total_booster_quantity_g/1000)
     charge_per_hole = explosive_quantity_kg + booster_quantity_g/1000
@@ -301,11 +340,13 @@ def calculate():
     total_explosive_cost= total_explosive_quantity_kg*explosive_cost_kg
     total_booster_cost = (total_booster_quantity_g / 1000) *booster_cost_kg
     total_nonel_length = 0
-    if pattern_type == 'staggered' and connection_type != 'none':
+    if pattern_type == 'Staggered' and connection_type != 'None':
         total_nonel_length = (num_holes * spacing) + (num_holes * nonel_length_m)
 
     total_blasting_cost = total_explosive_cost + total_booster_cost + total_nonel_length * nonel_cost_m
-
+    explosive_density_kg_m3 = explosive_density_g_cm3 * 1000
+    charge_height = explosive_quantity_kg / (explosive_density_kg_m3 * (diameter_mm / 1000) ** 2 * 3.141592653589793 / 4)
+    stemming_distance_m = depth_m - charge_height
     post_blast_image = request.files.get('post_blast_image')
     post_blast_image_base64 = None
 
@@ -313,50 +354,106 @@ def calculate():
         image_path = os.path.join(app.config['UPLOAD_FOLDER'], post_blast_image.filename)
         post_blast_image.save(image_path)  # Save image to the upload folder
 
-        # Read and encode the image to base64
-        with open(image_path, 'rb') as f:
-            img_byte_stream = f.read()
-            post_blast_image_base64 = base64.b64encode(img_byte_stream).decode('utf-8')
+        img = Image.open(image_path)
+        draw = ImageDraw.Draw(img)
+        font = ImageFont.load_default()
 
-#Generate summary table
+        # Define the text to be added
+        text = (f"Mine Name: {mine_name}\n"
+                f"Date : {date_str}\n"
+                f"Time : {time_str}\n"
+                f"Location: {location}\n"
+                f"Latitude : {Latitude}\n"
+                f"Longitude : {Longitude}")
+
+        # Calculate the text size
+        text_bbox = draw.textbbox((0, 0), text, font=font)
+        text_width = text_bbox[2] - text_bbox[0]
+        text_height = text_bbox[3] - text_bbox[1]
+
+        # Define the text position
+        text_position = (10, 10)  # Near the top-left corner of the image
+
+        # Define padding around text
+        padding = 10
+
+        # Define the box coordinates
+        box_coords = [
+            (text_position[0] - padding, text_position[1] - padding),  # Top-left of the box
+            (text_position[0] + text_width + padding, text_position[1] + text_height + padding)
+            # Bottom-right of the box
+        ]
+
+        # Draw the background rectangle (semi-transparent if needed)
+        draw.rectangle(box_coords, fill="white", outline="black")
+
+        # Draw the text on top of the rectangle
+        draw.multiline_text(text_position, text, fill="black", font=font)
+
+        # Save or process the updated image
+        img_byte_arr = BytesIO()
+        img.save(img_byte_arr, format='PNG')
+        img_byte_arr.seek(0)
+        post_blast_image_base64 = base64.b64encode(img_byte_arr.read()).decode('utf-8')
+
+    #Generate summary table
     data_summary = {
         'SPECIFICATIONS': [
             'Mine Name',
-            'Location',
             'Date',
+            'Time',
+            'Location',
+            'Latitude',
+            'Longitude',
             'Number of Holes',
-            'Spacing (m)',
-            'Burden (m)',
+            'Average Spacing (m)',
+            'Average Burden (m)',
             'Hole Diameter (mm)',
-            'Hole Depth (m)',
+            'Average Hole Depth (m)',
             'Explosive Type',
+            'Explosive Density (g/cm3)',
+            'Pattern Type',
+            'Connection Type',
+            'Row Delay (ms)',
+            'Diagonal Delay (ms)',
+            'Average Explosive per Hole(Kg)',
             'Total Explosive Quantity (Kg)',
-            'Total Booster Quantity (g)',
+            'Total Booster Quantity (Kg)',
             'Volume of Patch (m3)',
             'Powder Factor (PF)',
-            'Ideal Charge per Hole (Kg)',
+            'Average Stemming Distance (m)',
+            'Average Charge Height (m)',
             'PPV(Peak Particle Velocity) (mm/s)',
             'Mean Fragmentation Size (cm)',
-            'Total Blasting Cost (₹)'
+
         ],
         'DESCRIPTION':[
             mine_name,
-            location,
             date_str,
+            time_str,
+            location,
+            Latitude,
+            Longitude,
             num_holes,
             spacing,
             burden,
             diameter_mm,
             depth_m,
             explosive_type,
+            explosive_density_g_cm3,
+            pattern_type,
+            connection_type,
+            row_delay,
+            diagonal_delay,
+            round(explosive_quantity_kg,0),
             round(total_explosive_quantity_kg,3),
-            round(total_booster_quantity_g,3),
+            round(total_booster_quantity_g/1000,3),
             round(volume_of_patch_m3,3),
             round(powder_factor,3),
-            round(charge_per_hole,3),
+            round(stemming_distance_m,2),
+            round(charge_height,2),
             round(ppv,3),
-            round(mean_fragmentation_size, 3),
-            total_blasting_cost
+            round(mean_fragmentation_size, 3)
 
 
          ]
@@ -384,9 +481,9 @@ def calculate():
     plt.savefig(summary_table_img, format='png')
     summary_table_img.seek(0)
     summary_table_img_base64 = base64.b64encode(summary_table_img.read()).decode('utf-8')
-    
+
     positions = generate_blasting_pattern(pattern_type, num_holes, burden, spacing, num_rows)
-    fig,ax,scatter,delays = plot_blasting_pattern(positions,burden,spacing,num_rows,connection_type,row_delay=row_delay,diagonal_delay=diagonal_delay)
+    fig,ax,scatter,delays = plot_blasting_pattern(positions,burden,spacing,num_rows,connection_type,row_delay=row_delay,diagonal_delay=diagonal_delay,free_faces= free_faces)
     animation_html = None
     blasting_pattern_base64 = None
     if user_input == 'yes':
@@ -417,7 +514,7 @@ def calculate():
     nonel_line_length =nonel_length_m
     nonel_line = plt.Line2D([0.5] * 2, [depth_m- nonel_line_length, depth_m - 0.2], color='orange', linewidth = 2, label='Nonel Line')
     ax.add_line(nonel_line)
-    booster_square = plt.Rectangle((0.5 - diameter_mm/2000 /2, depth_m-0.2), diameter_mm/1000, 0.2, edgecolor = 'black' , facecolor ='yellow', label = 'Booster')
+    booster_square = plt.Rectangle((0.5 - diameter_mm/2000 /2, depth_m-0.2), 0.7*diameter_mm/1000, 0.2, edgecolor = 'black' , facecolor ='yellow', label = 'Booster')
     ax.add_patch(booster_square)
     arrowprops = dict(facecolor='black', shrink=0.05, width = 1)
     ax.annotate(f'Depth: {depth_m} m', xy=(0.5+ diameter_mm / 2000 / 2, depth_m),xytext=(1.5, depth_m),arrowprops=arrowprops, ha='center')
@@ -435,25 +532,9 @@ def calculate():
     single_hole_diagram_img.seek(0)
     single_hole_diagram_base64 = base64.b64encode(single_hole_diagram_img.getvalue()).decode('utf-8')
 
-    #animation_html = None
-    #blasting_pattern_base64 = None  # Ensure it's initialized
-
-    #if user_input == 'yes':
-        #anim = create_animation(fig, ax, scatter, delays)
-        #animation_html = anim.to_jshtml()
-    #else:
-        #blasting_pattern_img = BytesIO()
-        #plt.savefig(blasting_pattern_img, format='png')
-        #blasting_pattern_img.seek(0)
-        #blasting_pattern_base64 = base64.b64encode(blasting_pattern_img.read()).decode('utf-8')
-
-
-
-    #animation_html = None
-    #if user_input == 'yes':
-        #anim = create_animation(fig, ax, scatter, delays)
-        #animation_html = anim.to_jshtml()
+   
     return render_template('plot.html',summary_table= df_summary.values,blasting_pattern=blasting_pattern_base64,single_hole_diagram=single_hole_diagram_base64,animation_html=animation_html,post_blast_image=post_blast_image_base64)
 
 if __name__ == '__main__':
-    app.run()
+    db.create_all()
+    app.run(debug= True )
