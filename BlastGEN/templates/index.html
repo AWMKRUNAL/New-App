@@ -102,9 +102,9 @@
             var diagonalDelayRow = document.getElementById('diagonal_delay_row');
             var animationRow = document.getElementById('animation_row');
 
-            if (patternType === 'staggered') {
+            if (patternType === 'Staggered') {
                 connectionTypeRow.style.display = '';
-                if (connectionType === 'line' || connectionType === 'diagonal') {
+                if (connectionType === 'Line' || connectionType === 'Diagonal') {
                     rowDelayRow.style.display = '';
                     diagonalDelayRow.style.display = '';
                     animationRow.style.display = '';
@@ -130,7 +130,7 @@
 </head>
 <body>
     <header>
-        <img src="https://companieslogo.com/img/orig/ADANIPOWER.NS-1427c780.png?download-true.png" alt="Adani Logo">
+        <img src="https://companieslogo.com/img/orig/ADANIPOWER.NS-1427c780.png" alt="Adani Logo">
         <h1><span class="title-blast">Blast</span><span class="title-gen">GEN</span></h1>
     </header>
     <div class="container">
@@ -140,106 +140,153 @@
                     <th colspan="2" class="center">Enter Blasting Details</th>
                 </tr>
                  <tr>
-                    <td><label for="mine_name">Mine Name:</label></td>
+                    <td><label for="mine_name">Mine Name</label></td>
                     <td><input type="text" id="mine_name" name="mine_name" required></td>
                 </tr>
                  <tr>
-                    <td><label for="location">Location:</label></td>
+                    <td><label for="location">Location</label></td>
                     <td><input type="text" id="location" name="location" required></td>
                 </tr>
+                <tr>
+                    <td><label for="Latitude">Latitude</label></td>
+                    <td><input type="number" step="0.000001" id="Latitude" name="Latitude" min="-90" max="90" required></td>
+                </tr>
+                <tr>
+                    <td><label for="Longitude">Longitude</label></td>
+                    <td><input type="number" step="0.000001" id="Longitude" name="Longitude" min="-180" max="180" required></td>
+                </tr>
                  <tr>
-                    <td><label for="date">Date:</label></td>
+                    <td><label for="date">Date</label></td>
                     <td><input type="date" id="date" name="date" required></td>
                 </tr>
                 <tr>
-                    <td><label for="pattern_type">Pattern Type:</label></td>
-                    <td>
-                        <select id="pattern_type" name="pattern_type">
-                            <option value="square">Square</option>
-                            <option value="staggered">Staggered</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr id="connection_type_row">
-                    <td><label for="connection_type">Connection Type:</label></td>
-                    <td>
-                        <select id="connection_type" name="connection_type">
-                            <option value="none">None</option>
-                            <option value="line">Line</option>
-                            <option value="diagonal">Diagonal</option>
-                        </select>
-                    </td>
+                    <td><label for="time">Time</label></td>
+                    <td><input type="time" id="time" name="time" required></td>
                 </tr>
                 <tr>
-                    <td><label for="num_holes">Number of Holes:</label></td>
+                    <td><label for="pattern_type">Pattern Type</label></td>
+                    <td>
+                        <select id="pattern_type" name="pattern_type">
+                            <option value="Square">Square</option>
+                            <option value="Staggered">Staggered</option>
+                        </select>
+                    </td>
+                </tr>
+                   <tr id="connection_type_row">
+       <td><label for="connection_type">Connection Type</label></td>
+       <td>
+           <select id="connection_type" name="connection_type" onchange="updateForm()">
+               <option value="None">None</option>
+               <option value="Line">Line</option>
+               <option value="Diagonal">Diagonal</option>
+           </select>
+       </td>
+   </tr>
+                <tr id="free_face">
+    <td><label for="free_face">Free Face (Select at least one)</label></td>
+    <td>
+        <label>
+            <input type="checkbox" name="free_face[]" value="top" id="free_face_top" onchange="checkMandatory()">
+            Front Free Face
+        </label><br>
+        <label>
+            <input type="checkbox" name="free_face[]" value="bottom" id="free_face_bottom" onchange="checkMandatory()">
+            Back Free Face
+        </label><br>
+        <label>
+            <input type="checkbox" name="free_face[]" value="left" id="free_face_left" onchange="checkMandatory()">
+            Left Free Face
+        </label><br>
+        <label>
+            <input type="checkbox" name="free_face[]" value="right" id="free_face_right" onchange="checkMandatory()">
+            Right Free Face
+        </label>
+    </td>
+</tr>
+
+<script>
+    function checkMandatory() {
+        const topCheckbox = document.getElementById('free_face_top');
+        const checkboxes = document.querySelectorAll('input[name="free_face[]"]');
+        const anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
+
+        // Ensure at least one checkbox is selected, otherwise re-check "Top"
+        if (!anyChecked) {
+            topCheckbox.checked = true;
+            alert("At least one checkbox must remain selected. 'Top' is mandatory!");
+        }
+    }
+</script>
+                <tr>
+                    <td><label for="num_holes">Number of Holes</label></td>
                     <td><input type="number" id="num_holes" name="num_holes" min="1" max="1000" required></td>
                 </tr>
                 <tr>
-                    <td><label for="burden">Burden (m): </label></td>
+                    <td><label for="burden">Average Burden (m)</label></td>
                     <td><input type="number" step="0.01" id="burden" name="burden" min="1" max="15" required></td>
                 </tr>
                 <tr>
-                    <td><label for="spacing">Spacing (m): </label></td>
+                    <td><label for="spacing">Average Spacing (m)</label></td>
                     <td><input type="number" step="0.01" id="spacing" name="spacing" min="1" max="15" required></td>
                 </tr>
                 <tr>
-                    <td><label for="num_rows">Number of Rows:</label></td>
+                    <td><label for="num_rows">Number of Rows</label></td>
                     <td><input type="number" id="num_rows" name="num_rows" min="1" max="20" required></td>
                 </tr>
                 <tr>
-                    <td><label for="diameter_mm">Hole Diameter (mm):</label></td>
+                    <td><label for="diameter_mm">Hole Diameter (mm)</label></td>
                     <td><input type="number" step="0.01" id="diameter_mm" name="diameter_mm" min="10" max="500" required></td>
                 </tr>
                 <tr>
-                    <td><label for="depth_m">Hole Depth (m): </label></td>
+                    <td><label for="depth_m">Average Hole Depth (m)</label></td>
                     <td><input type="number" step="0.01" id="depth_m" name="depth_m" min="1" max="50" required></td>
                 </tr>
                 <tr>
-                    <td><label for="explosive_type">Explosive Type:</label></td>
+                    <td><label for="explosive_type">Explosive Type</label></td>
                     <td><input type="text" id="explosive_type" name="explosive_type" required></td>
                 </tr>
                 <tr>
-                    <td><label for="explosive_density_g_cm3">Explosive Density (g/cm³):</label></td>
+                    <td><label for="explosive_density_g_cm3">Explosive Density (g/cm³)</label></td>
                     <td><input type="number" step="0.01" id="explosive_density_g_cm3" name="explosive_density_g_cm3" min="1" max="10" required></td>
                 </tr>
                 <tr>
-                    <td><label for="explosive_quantity_kg">Explosive Quantity (kg) per hole:</label></td>
-                    <td><input type="number" step="0.01" id="explosive_quantity_kg" name="explosive_quantity_kg" min="5" max="200" required></td>
+                    <td><label for="total_explosive_quantity_kg">Total Explosive Quantity (kg) per hole</label></td>
+                    <td><input type="number" step="0.01" id="total_explosive_quantity_kg" name="total_explosive_quantity_kg" min="5" max="100000" required></td>
                 </tr>
                 <tr>
-    		    <td><label for="nonel_length_m">Nonel Length (m):</label></td>
+    		    <td><label for="nonel_length_m">Nonel Length (m)</label></td>
                 <td><input type="number" step="0.01" id="nonel_length_m" name="nonel_length_m" min="1" max="15" required></td>
                 </tr>
                 <tr>
-                    <td><label for="booster_quantity_g">Booster Quantity (g):</label></td>
+                    <td><label for="booster_quantity_g">Booster Quantity per hole (g)</label></td>
                     <td><input type="number" step="0.01" id="booster_quantity_g" name="booster_quantity_g" min="1" max="10000" required></td>
                 </tr>
                 <tr>
-                    <td><label for="rock_density">Rock Density:</label></td>
+                    <td><label for="rock_density">Rock Density (g/cm³)</label></td>
                     <td><input type="number" step="0.01" id="rock_density" name="rock_density" min="1" max="100" required></td>
                 </tr>
                 <tr>
-                    <td><label for="distance">Distance to Measurement Point (m):</label></td>
+                    <td><label for="distance">Distance to Measurement Point (m)</label></td>
                     <td><input type="number" step="0.01" id="distance" name="distance" min="1" max="1000" required></td>
                 </tr>
                 <tr>
-                    <td><label for="k_constant">K Constant:</label></td>
+                    <td><label for="k_constant">K Constant (Ideal Value=237.2)</label></td>
                     <td><input type="number" step="0.01" id="k_constant" name="k_constant" min="0.1" max="1000" required></td>
                 </tr>
                 <tr>
-                    <td><label for="e_constant">E Constant:</label></td>
+                    <td><label for="e_constant">E Constant (Ideal Value=1.12)</label></td>
                     <td><input type="number" step="0.01" id="e_constant" name="e_constant" min="0.1" max="1000" required></td>
                 </tr>
                 <tr id="row_delay_row">
-                    <td><label for="row_delay">Row Delay (ms):</label></td>
+                    <td><label for="row_delay">Row Delay (ms)</label></td>
                     <td><input type="number" step="0.01" id="row_delay" name="row_delay" min="0" max="1000"></td>
                 </tr>
                 <tr id="diagonal_delay_row">
-                    <td><label for="diagonal_delay">Diagonal Delay (ms):</label></td>
+                    <td><label for="diagonal_delay">Diagonal Delay (ms)</label></td>
                     <td><input type="number" step="0.01" id="diagonal_delay" name="diagonal_delay" min="0" max="1000"></td>
                 </tr>
                 <tr id="animation_row">
-                    <td><label for="user_input">Simulation:</label></td>
+                    <td><label for="user_input">Simulation</label></td>
                     <td>
                         <select id="user_input" name="user_input">
                             <option value="yes">Yes</option>
@@ -248,19 +295,19 @@
                     </td>
                 </tr>
                 <tr>
-                    <td><label for="explosive_cost_kg">Explosive Cost per Kg (₹):</label></td>
+                    <td><label for="explosive_cost_kg">Explosive Cost per Kg (₹)</label></td>
                     <td><input type="number" step="0.1" id="explosive_cost_kg" name="explosive_cost_kg" min="0" required></td>
                 </tr>
                  <tr>
-                    <td><label for="booster_cost_kg">Booster Cost per Kg (₹):</label></td>
+                    <td><label for="booster_cost_kg">Booster Cost per Kg (₹)</label></td>
                     <td><input type="number" step="0.1" id="booster_cost_kg" name="booster_cost_kg" min="0" required></td>
                 </tr>
                  <tr>
-                    <td><label for="nonel_cost_m">Nonel Cost per Meter (₹):</label></td>
+                    <td><label for="nonel_cost_m">Nonel Cost per Meter (₹)</label></td>
                     <td><input type="number" step="0.1" id="nonel_cost_m" name="nonel_cost_m" min="0" required></td>
                 </tr>
                 <tr>
-                    <td><label for="post_blast_image">Post-Blast Image:</label></td>
+                    <td><label for="post_blast_image">Post-Blast Image</label></td>
                     <td><input type="file" id="post_blast_image" name="post_blast_image" accept="image/*"></td>
                 </tr>
             </table>
@@ -269,7 +316,10 @@
     </div>
 
     <footer>
-        Krunal Chulbulkar @ Technology Department
+        <script>
+        // Dynamically update the copyright year
+        document.getElementById('year').textContent = new Date().getFullYear();
+        </script>
     </footer>
 
 </body>
