@@ -514,7 +514,7 @@ def calculate():
     nonel_line_length =nonel_length_m
     nonel_line = plt.Line2D([0.5] * 2, [depth_m- nonel_line_length, depth_m - 0.2], color='orange', linewidth = 2, label='Nonel Line')
     ax.add_line(nonel_line)
-    booster_square = plt.Rectangle((0.5 - diameter_mm/2000 /2, depth_m-0.2), 0.7*diameter_mm/1000, 0.2, edgecolor = 'black' , facecolor ='yellow', label = 'Booster')
+    booster_square = plt.Rectangle((0.5 - diameter_mm/2000 /2, depth_m-0.7), 0.5*diameter_mm/1000, 0.5, edgecolor = 'black' , facecolor ='yellow', label = 'Booster')
     ax.add_patch(booster_square)
     arrowprops = dict(facecolor='black', shrink=0.05, width = 1)
     ax.annotate(f'Depth: {depth_m} m', xy=(0.5+ diameter_mm / 2000 / 2, depth_m),xytext=(1.5, depth_m),arrowprops=arrowprops, ha='center')
