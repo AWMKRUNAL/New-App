@@ -140,7 +140,7 @@
     }
 
     th, td {
-        padding: 5px; /* Reduce padding to save space */
+        padding: 1px; /* Reduce padding to save space */
     }
 
     th {
@@ -222,15 +222,35 @@
 
     <div class="container content page-break">
         {% if animation_html %}
-            <h2>Blasting Pattern Animation</h2>
+            <h2>Blasting Animation</h2>
             <div class="center-print">{{ animation_html|safe }}</div>
         {% else %}
             <h2>Blasting Pattern</h2>
             <img class="center-print image-separator" src="data:image/png;base64,{{ blasting_pattern }}" alt="Blasting Pattern">
         {% endif %}
 
-        <h2>Single Hole Diagram</h2>
-        <img class="center-print" src="data:image/png;base64,{{ single_hole_diagram }}" alt="Single Hole Diagram">
+
+        <!-- Check if Single Hole Diagram exists -->
+        {% if single_hole_diagram %}
+        <div class="image-separator">
+            <h2>Direct Charged Hole</h2>
+            <img src="data:image/png;base64,{{ single_hole_diagram }}" alt="Single Hole Diagram">
+        </div>
+        {% endif %}
+        {% if single_hole_diagram %}
+            <div class="page-break"></div>
+        {% endif %}
+
+        <!-- Check if Combined Hole Diagram exists -->
+        {% if combined_hole_diagram %}
+        <div class="image-separator">
+            <h2>Decked Charged Hole</h2>
+            <img src="data:image/png;base64,{{ combined_hole_diagram }}" alt="Combined Hole Diagram">
+        </div>
+        {% endif %}
+    </div>
+
+
     </div>
 
     {% if post_blast_image %}
