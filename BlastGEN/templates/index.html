@@ -127,6 +127,39 @@
             document.getElementById('connection_type').addEventListener('change', updateForm);
         });
     </script>
+    <script>
+        // Function to update form fields based on deck charging selection
+        function updateDeckChargingForm() {
+            const deckCharging = document.getElementById('deck_charging').value;
+
+            // Toggle visibility of deck charging details
+            const rowsToToggle = [
+                'num_decked_holes',
+                'explosive_quantity_top_kg',
+                'explosive_quantity_bottom_kg',
+                'nonel_length_top_m',
+                'nonel_length_bottom_m'
+            ];
+
+            if (deckCharging === 'Yes') {
+                rowsToToggle.forEach(id => document.getElementById(id).style.display = '');
+            } else {
+                rowsToToggle.forEach(id => document.getElementById(id).style.display = 'none');
+            }
+        }
+
+        // Function to validate number of decked holes
+        function checkDeckedHoles() {
+            const numDeckedHoles = parseInt(document.getElementById('num_decked_holes').value) || 0;
+            const numHoles = 5; // Example: total number of holes
+
+            // Toggle Nonel length fields based on condition
+            const toggleNonelRows = (numDeckedHoles === numHoles) ? 'none' : '';
+            document.getElementById('nonel_length_top_m').style.display = toggleNonelRows;
+            document.getElementById('nonel_length_bottom_m').style.display = toggleNonelRows;
+        }
+    </script>
+
 </head>
 <body>
     <header>
@@ -222,6 +255,36 @@
                     <td><input type="number" id="num_holes" name="num_holes" min="1" max="1000" required></td>
                 </tr>
                 <tr>
+                    <td><label for="deck_charging">Deck Charging</label></td>
+                    <td>
+                        <select id="deck_charging" name="deck_charging" onchange="updateDeckChargingForm()">
+                            <option value="No">No</option>
+                            <option value="Yes">Yes</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr id="num_decked_holes" style="display:none;">
+                    <td><label for="num_decked_holes">Number of Decked Charged Holes</label></td>
+                    <td><input type="number" id="num_decked_holes" name="num_decked_holes" oninput="checkDeckedHoles()" min="1" max="300"></td>
+                </tr>
+                <tr id="explosive_quantity_top_kg" style="display:none;">
+                    <td><label for="explosive_quantity_top_kg">Explosive Quantity (Top) per hole in kg</label></td>
+                    <td><input type="number" id="explosive_quantity_top_kg" name="explosive_quantity_top_kg" step="0.1" min="1" max="100"></td>
+                </tr>
+                <tr id="explosive_quantity_bottom_kg" style="display:none;">
+                    <td><label for="explosive_quantity_bottom_kg">Explosive Quantity (Bottom) per hole in kg</label></td>
+                    <td><input type="number" id="explosive_quantity_bottom_kg" name="explosive_quantity_bottom_kg" step="0.1" min="1" max="100" ></td>
+                </tr>
+                <tr id="nonel_length_top_m" style="display:none;">
+                    <td><label for="nonel_length_top_m">Nonel Length (Top) in meters</label></td>
+                    <td><input type="number" id="nonel_length_top_m" name="nonel_length_top_m" step="0.1" min="1" max="100"></td>
+                </tr>
+                <tr id="nonel_length_bottom_m" style="display:none;">
+                    <td><label for="nonel_length_bottom_m">Nonel Length (Bottom) in meters</label></td>
+                    <td><input type="number" id="nonel_length_bottom_m" name="nonel_length_bottom_m" step="0.1" min="1" max="100"></td>
+                </tr>
+
+                <tr>
                     <td><label for="burden">Average Burden (m)</label></td>
                     <td><input type="number" step="0.01" id="burden" name="burden" min="1" max="15" required></td>
                 </tr>
@@ -257,6 +320,15 @@
     		    <td><label for="nonel_length_m">Nonel Length (m)</label></td>
                 <td><input type="number" step="0.01" id="nonel_length_m" name="nonel_length_m" min="1" max="15" required></td>
                 </tr>
+                </tr>
+                <tr>
+                    <td><label for="electronic_detonators">Electronic Detonators Used</label></td>
+                    <td><input type="number" step="1" id="electronic_detonators" name="electronic_detonators" min="1" max="20" required></td>
+                </tr>
+                <tr>
+                    <td><label for="electrical_detonators">Electrical Detonators Used</label></td>
+                    <td><input type="number" step="1" id="electrical_detonators" name="electrical_detonators" min="1" max="20" required></td>
+                </tr>
                 <tr>
                     <td><label for="booster_quantity_g">Booster Quantity per hole (g)</label></td>
                     <td><input type="number" step="0.01" id="booster_quantity_g" name="booster_quantity_g" min="1" max="10000" required></td>
@@ -270,11 +342,11 @@
                     <td><input type="number" step="0.01" id="distance" name="distance" min="1" max="1000" required></td>
                 </tr>
                 <tr>
-                    <td><label for="k_constant">K Constant (Ideal Value=237.2)</label></td>
-                    <td><input type="number" step="0.01" id="k_constant" name="k_constant" min="0.1" max="1000" required></td>
+                    <td><label for="k_constant">K Constant (Value as per Site Study=9907.03)</label></td>
+                    <td><input type="number" step="0.01" id="k_constant" name="k_constant" min="0.1" max="10000" required></td>
                 </tr>
                 <tr>
-                    <td><label for="e_constant">E Constant (Ideal Value=1.12)</label></td>
+                    <td><label for="e_constant">E Constant (Value as per Site Study=2.12)</label></td>
                     <td><input type="number" step="0.01" id="e_constant" name="e_constant" min="0.1" max="1000" required></td>
                 </tr>
                 <tr id="row_delay_row">
