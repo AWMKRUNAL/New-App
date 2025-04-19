@@ -16,8 +16,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 matplotlib.rcParams['animation.embed_limit'] = 2**128
 
-app = Flask(__name__)
 
+app = Flask(__name__)
 
 UPLOAD_FOLDER = 'uploads/'  # Define your upload folder
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -73,7 +73,9 @@ def plot_blasting_pattern(positions, burden, spacing, num_rows, connection_type,
                 else:
                     delays[i] = delays[i-1] + row_delay
 
- 
+    #if connection_type != 'none' and pattern_type !='square':
+        #for i, (x_pos, y_pos) in enumerate(positions):
+            #ax.text(x_pos, y_pos, f'{delays[i]} ms' if delays[i] is not None else '',fontsize = 8, ha = 'right')
 
     ax.grid(False)
     ax.set_xlim(-spacing, max(x) + spacing)
@@ -308,6 +310,9 @@ def calculate():
     Latitude = float(request.form['Latitude'])
     Longitude = float(request.form['Longitude'])
     pattern_type= request.form['pattern_type']
+    deck_charging = request.form.get('deck_charging', 'none')
+    num_decked_holes = int(request.form['num_decked_holes']) if request.form.get('deck_charging'
+                                                                                 '').lower() == "yes" else 0
     connection_type= request.form.get('connection_type', 'none')
     num_holes = int(request.form['num_holes'])
     burden = float(request.form['burden'])
@@ -321,6 +326,16 @@ def calculate():
     nonel_length_m = float(request.form['nonel_length_m'])
     booster_quantity_g = float(request.form['booster_quantity_g'])
     rock_density = float(request.form['rock_density'])
+    explosive_quantity_top_kg = float(request.form['explosive_quantity_top_kg']) if request.form.get('deck_charging',
+                                                                                                     '').lower() == "yes" else 0.0
+    explosive_quantity_bottom_kg = float(request.form['explosive_quantity_bottom_kg']) if request.form.get(
+        'deck_charging',
+        '').lower() == "yes" else 0.0
+    nonel_length_top_m = float(request.form['nonel_length_top_m']) if request.form.get('deck_charging',
+                                                                                       '').lower() == "yes" else 0.0
+    nonel_length_bottom_m = float(request.form['nonel_length_bottom_m']) if request.form.get('deck_charging',
+                                                                                             '').lower() == "yes" else 0.0
+
     distance = float(request.form['distance'])
     k_constant = float(request.form['k_constant'])
     e_constant = float(request.form['e_constant'])
@@ -330,13 +345,20 @@ def calculate():
     explosive_cost_kg = float(request.form['explosive_cost_kg'])
     booster_cost_kg = float(request.form['booster_cost_kg'])
     nonel_cost_m = float(request.form['nonel_cost_m'])
+    electronic_detonators = int(request.form['electronic_detonators'])
+    electrical_detonators = int(request.form['electrical_detonators'])
     explosive_quantity_kg = total_explosive_quantity_kg / num_holes
-    total_booster_quantity_g = booster_quantity_g *num_holes
+    #total_booster_quantity_g = booster_quantity_g *num_holes
+    if deck_charging == 'Yes':
+        total_booster_quantity_g = booster_quantity_g * (num_holes + num_decked_holes )
+    else:
+        total_booster_quantity_g = booster_quantity_g * num_holes
+
     volume_of_patch_m3 = depth_m*spacing*burden*num_holes
     powder_factor = volume_of_patch_m3/(total_explosive_quantity_kg + total_booster_quantity_g/1000)
     charge_per_hole = explosive_quantity_kg + booster_quantity_g/1000
     ppv = calculate_ppv(distance,charge_per_hole,k_constant,e_constant)
-    mean_fragmentation_size = 8 * (burden*spacing*depth_m/charge_per_hole )**0.8* charge_per_hole **0.167
+    mean_fragmentation_size = 12.4 * (burden*spacing*depth_m/charge_per_hole )**0.8* charge_per_hole **0.167
     total_explosive_cost= total_explosive_quantity_kg*explosive_cost_kg
     total_booster_cost = (total_booster_quantity_g / 1000) *booster_cost_kg
     total_nonel_length = 0
@@ -371,26 +393,31 @@ def calculate():
         text_width = text_bbox[2] - text_bbox[0]
         text_height = text_bbox[3] - text_bbox[1]
 
-        # Define the text position
-        text_position = (10, 10)  # Near the top-left corner of the image
+        # Image dimensions
+        img_width, img_height = img.size
 
-        # Define padding around text
-        padding = 10
+        # Define dynamic padding (for proportional scaling)
+        padding = max(img_width, img_height) // 50  # Adjust 1/50th of the largest dimension
 
-        # Define the box coordinates
+        # Define the text position dynamically (e.g., 5% inset from top-left)
+        x_offset = img_width // 20  # 5% inset from left
+        y_offset = img_height // 20  # 5% inset from top
+        text_position = (x_offset, y_offset)
+
+        # Define the box coordinates dynamically
         box_coords = [
             (text_position[0] - padding, text_position[1] - padding),  # Top-left of the box
             (text_position[0] + text_width + padding, text_position[1] + text_height + padding)
             # Bottom-right of the box
         ]
 
-        # Draw the background rectangle (semi-transparent if needed)
+        # Draw the background rectangle with padding (semi-transparent if needed)
         draw.rectangle(box_coords, fill="white", outline="black")
 
         # Draw the text on top of the rectangle
         draw.multiline_text(text_position, text, fill="black", font=font)
 
-        # Save or process the updated image
+        # Convert the image to Base64
         img_byte_arr = BytesIO()
         img.save(img_byte_arr, format='PNG')
         img_byte_arr.seek(0)
@@ -406,6 +433,7 @@ def calculate():
             'Latitude',
             'Longitude',
             'Number of Holes',
+            'Number of Decked Holes',
             'Average Spacing (m)',
             'Average Burden (m)',
             'Hole Diameter (mm)',
@@ -416,14 +444,16 @@ def calculate():
             'Connection Type',
             'Row Delay (ms)',
             'Diagonal Delay (ms)',
-            'Average Explosive per Hole(Kg)',
+            'Average Explosive Quantity per Hole(Kg)',
             'Total Explosive Quantity (Kg)',
             'Total Booster Quantity (Kg)',
+            'Electronic Detonators Used',
+            'Electrical Detonators Used',
             'Volume of Patch (m3)',
             'Powder Factor (PF)',
             'Average Stemming Distance (m)',
             'Average Charge Height (m)',
-            'PPV(Peak Particle Velocity) (mm/s)',
+            'PPV (Peak Particle Velocity) (mm/s)',
             'Mean Fragmentation Size (cm)',
 
         ],
@@ -435,6 +465,7 @@ def calculate():
             Latitude,
             Longitude,
             num_holes,
+            num_decked_holes,
             spacing,
             burden,
             diameter_mm,
@@ -448,6 +479,8 @@ def calculate():
             round(explosive_quantity_kg,0),
             round(total_explosive_quantity_kg,3),
             round(total_booster_quantity_g/1000,3),
+            electronic_detonators,
+            electrical_detonators,
             round(volume_of_patch_m3,3),
             round(powder_factor,3),
             round(stemming_distance_m,2),
@@ -493,12 +526,63 @@ def calculate():
         blasting_pattern_img = BytesIO()
         plt.savefig(blasting_pattern_img, format='png')
         blasting_pattern_img.seek(0)
-        blasting_pattern_base64 = base64.b64encode(blasting_pattern_img.read()).decode('utf-8')
+        #blasting_pattern_base64 = base64.b64encode(blasting_pattern_img.read()).decode('utf-8')
+        # Use PIL for image processing
+        img = Image.open(blasting_pattern_img)
+        draw = ImageDraw.Draw(img)
+        font = ImageFont.load_default()
+
+        ## Define the text to be added
+        text = (f"Mine Name: {mine_name}\n"
+                f"Date : {date_str}\n"
+                f"Time : {time_str}\n"
+                f"Location: {location}\n"
+                f"Latitude : {Latitude}\n"
+                f"Longitude : {Longitude}")
+
+        # Calculate the text size
+        text_bbox = draw.textbbox((0, 0), text, font=font)
+        text_width = text_bbox[2] - text_bbox[0]
+        text_height = text_bbox[3] - text_bbox[1]
+
+        # Image dimensions
+        img_width, img_height = img.size
+
+        # Define dynamic padding (for proportional scaling)
+        padding = max(img_width, img_height) // 50  # Adjust 1/50th of the largest dimension
+
+        # Define the text position dynamically (e.g., 5% inset from top-left)
+        x_offset = img_width // 20  # 5% inset from left
+        y_offset = img_height // 20  # 5% inset from top
+        text_position = (x_offset, y_offset)
+
+        # Define the box coordinates dynamically
+        box_coords = [
+            (text_position[0] - padding, text_position[1] - padding),  # Top-left of the box
+            (text_position[0] + text_width + padding, text_position[1] + text_height + padding)
+            # Bottom-right of the box
+        ]
+
+        # Draw the background rectangle with padding (semi-transparent if needed)
+        draw.rectangle(box_coords, fill="white", outline="black")
+
+        # Draw the text on top of the rectangle
+        draw.multiline_text(text_position, text, fill="black", font=font)
+
+        # Convert the annotated image to Base64
+        annotated_img_byte_arr = BytesIO()
+        img.save(annotated_img_byte_arr, format='PNG')
+        annotated_img_byte_arr.seek(0)
+        blasting_pattern_base64 = base64.b64encode(annotated_img_byte_arr.read()).decode('utf-8')
+
+        # Clean up Matplotlib to avoid memory issues
+        plt.close(fig)
+
     #blasting_pattern_img = BytesIO()
     #plt.savefig(blasting_pattern_img, format='png')
     #blasting_pattern_img.seek(0)
     #blasting_pattern_base64 = base64.b64encode(blasting_pattern_img.read()).decode('utf-8')
-    
+
     explosive_density_kg_m3 = explosive_density_g_cm3 * 1000
     charge_height = explosive_quantity_kg / (explosive_density_kg_m3 * (diameter_mm / 1000) ** 2 * 3.141592653589793 / 4)
     stemming_distance_m = depth_m - charge_height
@@ -512,7 +596,7 @@ def calculate():
     void_space = plt.Rectangle((0.5 - diameter_mm/ 2000, stemming_distance_m), diameter_mm/ 1000, void_space_height, edgecolor='black',facecolor='none', label='Void Space')
     ax.add_patch(void_space)
     nonel_line_length =nonel_length_m
-    nonel_line = plt.Line2D([0.5] * 2, [depth_m- nonel_line_length, depth_m - 0.2], color='orange', linewidth = 2, label='Nonel Line')
+    nonel_line = plt.Line2D([0.5] * 2, [depth_m- nonel_line_length, depth_m - 0.2], color='red', linewidth = 2, label='Nonel Line')
     ax.add_line(nonel_line)
     booster_square = plt.Rectangle((0.5 - diameter_mm/2000 /2, depth_m-0.7), 0.5*diameter_mm/1000, 0.5, edgecolor = 'black' , facecolor ='yellow', label = 'Booster')
     ax.add_patch(booster_square)
@@ -532,8 +616,138 @@ def calculate():
     single_hole_diagram_img.seek(0)
     single_hole_diagram_base64 = base64.b64encode(single_hole_diagram_img.getvalue()).decode('utf-8')
 
-   
-    return render_template('plot.html',summary_table= df_summary.values,blasting_pattern=blasting_pattern_base64,single_hole_diagram=single_hole_diagram_base64,animation_html=animation_html,post_blast_image=post_blast_image_base64)
+    # Calculate charge height for each explosive
+    charge_height_top = explosive_quantity_top_kg / (
+                explosive_density_kg_m3 * (diameter_mm / 1000) ** 2 * 3.141592653589793 / 4)
+    charge_height_bottom = explosive_quantity_bottom_kg / (
+                explosive_density_kg_m3 * (diameter_mm / 1000) ** 2 * 3.141592653589793 / 4)
+
+    # Calculate stemming distances
+    total_charge_height = charge_height_top + charge_height_bottom
+    intermediate_stemming_m = (depth_m - total_charge_height) / 2
+    top_stemming_m = depth_m - (charge_height_top + charge_height_bottom + intermediate_stemming_m)
+
+    # Create combined plot
+    fig, ax = plt.subplots()
+
+    # Plot bottom explosive charge
+    charge_bottom = plt.Rectangle((0.5 - diameter_mm / 2000, 0), diameter_mm / 1000, charge_height_bottom,
+                                  edgecolor='black', facecolor='black')
+    ax.add_patch(charge_bottom)
+
+    # Plot intermediate stemming
+    stemming_intermediate = plt.Rectangle((0.5 - diameter_mm / 2000, charge_height_bottom), diameter_mm / 1000,
+                                          intermediate_stemming_m, edgecolor='black', facecolor='grey')
+    ax.add_patch(stemming_intermediate)
+
+    # Plot top explosive charge
+    charge_top = plt.Rectangle((0.5 - diameter_mm / 2000, charge_height_bottom + intermediate_stemming_m),
+                               diameter_mm / 1000, charge_height_top, edgecolor='black', facecolor='black',
+                               label='Explosive Charge')
+    ax.add_patch(charge_top)
+
+    # Plot top stemming
+    stemming_top = plt.Rectangle(
+        (0.5 - diameter_mm / 2000, charge_height_bottom + intermediate_stemming_m + charge_height_top),
+        diameter_mm / 1000, top_stemming_m, edgecolor='black', facecolor='grey', label='Stemming')
+    ax.add_patch(stemming_top)
+
+    # Plot Nonel lines (reversed)
+    nonel_line_bottom = plt.Line2D([0.5] * 2,
+                                   [charge_height_bottom / 2, charge_height_bottom / 2 + nonel_length_bottom_m],
+                                   color='red', linewidth=2)
+    ax.add_line(nonel_line_bottom)
+    nonel_line_top = plt.Line2D([0.47] * 2, [charge_height_bottom + intermediate_stemming_m + charge_height_top / 2,
+                                             charge_height_bottom + intermediate_stemming_m + charge_height_top / 2 + nonel_length_top_m],
+                                color='red', linewidth=2, label='Nonel Line')
+    ax.add_line(nonel_line_top)
+
+    # Plot boosters
+    booster_bottom = plt.Rectangle((0.5 - diameter_mm / 2000 / 2, charge_height_bottom / 7), 0.5 * diameter_mm / 1000,
+                                   0.5, edgecolor='black', facecolor='yellow')
+    ax.add_patch(booster_bottom)
+    booster_top = plt.Rectangle(
+        (0.47 - diameter_mm / 2000 / 2, charge_height_bottom + intermediate_stemming_m + charge_height_top / 7),
+        0.5 * diameter_mm / 1000, 0.5, edgecolor='black', facecolor='yellow', label='Booster')
+    ax.add_patch(booster_top)
+
+    # Add annotations
+    arrowprops = dict(facecolor='black', shrink=0.05, width=1)
+    ax.annotate(f'Bottom Charge Height: {charge_height_bottom:.2f} m',
+                xy=(0.5 + diameter_mm / 2000 / 2, charge_height_bottom / 2), xytext=(1.5, charge_height_bottom / 2),
+                arrowprops=dict(facecolor='black', shrink=0.05, width=1), ha='center', color='black')
+    ax.annotate(f'Intermediate Stemming: {intermediate_stemming_m:.2f} m',
+                xy=(0.5 + diameter_mm / 2000 / 2, charge_height_bottom + intermediate_stemming_m / 2),
+                xytext=(1.5, charge_height_bottom + intermediate_stemming_m / 2),
+                arrowprops=dict(facecolor='grey', shrink=0.05, width=1), ha='center', color='black')
+    ax.annotate(f'Top Charge Height: {charge_height_top:.2f} m', xy=(
+    0.5 + diameter_mm / 2000 / 2, charge_height_bottom + intermediate_stemming_m + charge_height_top / 2),
+                xytext=(1.5, charge_height_bottom + intermediate_stemming_m + charge_height_top / 2),
+                arrowprops=dict(facecolor='black', shrink=0.05, width=1), ha='center', color='black')
+    ax.annotate(f'Top Stemming: {top_stemming_m:.2f} m', xy=(0.5 + diameter_mm / 2000 / 2,
+                                                              charge_height_bottom + intermediate_stemming_m + charge_height_top + top_stemming_m / 2),
+                xytext=(1.5, charge_height_bottom + intermediate_stemming_m + charge_height_top + top_stemming_m / 2),
+                arrowprops=dict(facecolor='grey', shrink=0.05, width=1), ha='center', color='black')
+
+    # Set plot limits and legend
+    ax.set_ylim(-1, depth_m + 1)
+    ax.set_xlim(0, 3)
+    plt.legend(loc='upper right', fontsize='small')
+
+    # Save plot as image
+    combined_hole_diagram_img = BytesIO()
+    plt.savefig(combined_hole_diagram_img, format='png')
+    combined_hole_diagram_img.seek(0)
+    combined_hole_diagram_base64 = base64.b64encode(combined_hole_diagram_img.getvalue()).decode('utf-8')
+
+    #animation_html = None
+    #blasting_pattern_base64 = None  # Ensure it's initialized
+
+    #if user_input == 'yes':
+        #anim = create_animation(fig, ax, scatter, delays)
+        #animation_html = anim.to_jshtml()
+    #else:
+        #blasting_pattern_img = BytesIO()
+        #plt.savefig(blasting_pattern_img, format='png')
+        #blasting_pattern_img.seek(0)
+        #blasting_pattern_base64 = base64.b64encode(blasting_pattern_img.read()).decode('utf-8')
+
+
+
+    #animation_html = None
+    #if user_input == 'yes':
+        #anim = create_animation(fig, ax, scatter, delays)
+        #animation_html = anim.to_jshtml()
+
+    if deck_charging.lower() == "yes":
+        if num_holes == num_decked_holes:
+            # Generate the combined hole diagram only
+            combined_hole_diagram_img = BytesIO()
+            plt.savefig(combined_hole_diagram_img, format='png')
+            combined_hole_diagram_img.seek(0)
+            combined_hole_diagram_base64 = base64.b64encode(combined_hole_diagram_img.getvalue()).decode('utf-8')
+            single_hole_diagram_base64 = None  # No single hole diagram in this case
+        elif (num_holes > num_decked_holes) and (num_holes < num_decked_holes):
+            # Generate both single and combined diagrams
+            # Save Single Hole Diagram
+            single_hole_diagram_img = BytesIO()
+            plt.savefig(single_hole_diagram_img, format='png')
+            single_hole_diagram_img.seek(0)
+            single_hole_diagram_base64 = base64.b64encode(single_hole_diagram_img.getvalue()).decode('utf-8')
+
+            # Save Combined Hole Diagram
+            combined_hole_diagram_img = BytesIO()
+            plt.savefig(combined_hole_diagram_img, format='png')
+            combined_hole_diagram_img.seek(0)
+            combined_hole_diagram_base64 = base64.b64encode(combined_hole_diagram_img.getvalue()).decode('utf-8')
+    elif deck_charging.lower() == "no":
+        combined_hole_diagram_base64 = None
+
+
+
+
+
+    return render_template('plot.html',summary_table= df_summary.values,blasting_pattern=blasting_pattern_base64,single_hole_diagram=single_hole_diagram_base64,combined_hole_diagram=combined_hole_diagram_base64,animation_html=animation_html,post_blast_image=post_blast_image_base64)
 
 if __name__ == '__main__':
     db.create_all()
