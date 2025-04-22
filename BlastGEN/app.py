@@ -585,7 +585,7 @@ def calculate():
 
     explosive_density_kg_m3 = explosive_density_g_cm3 * 1000
     if deck_charging == 'Yes':
-        direct_charge_explosive_quantity = total_explosive_quantity_kg - (num_decked_holes * (explosive_quantity_top_kg + explosive_quantity_bottom_kg))
+        direct_charge_explosive_quantity = (total_explosive_quantity_kg - (num_decked_holes * (explosive_quantity_top_kg + explosive_quantity_bottom_kg))) / (num_holes - num_decked_holes)
     else:
        direct_charge_explosive_quantity = explosive_quantity_kg
    
