@@ -584,8 +584,11 @@ def calculate():
     #blasting_pattern_base64 = base64.b64encode(blasting_pattern_img.read()).decode('utf-8')
 
     explosive_density_kg_m3 = explosive_density_g_cm3 * 1000
-    if deck_charging == 'Yes':
-        direct_charge_explosive_quantity = (total_explosive_quantity_kg - (num_decked_holes * (explosive_quantity_top_kg + explosive_quantity_bottom_kg))) / (num_holes - num_decked_holes)
+    if deck_charging == 'Yes' :
+        if num_holes == num_decked_holes:
+            direct_charge_explosive_quantity = 0
+        else:
+            direct_charge_explosive_quantity = (total_explosive_quantity_kg - (num_decked_holes * (explosive_quantity_top_kg + explosive_quantity_bottom_kg))) / (num_holes - num_decked_holes)
     else:
        direct_charge_explosive_quantity = explosive_quantity_kg
    
