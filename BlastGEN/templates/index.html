@@ -1,398 +1,334 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-    <title>BlastGEN</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BlastGEN - Blasting Simulation Tool</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Custom Tailwind Config for Dark Mode -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        };
+    </script>
+    <!-- Custom CSS for Animations -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@900&display=swap');
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #d1c4e9; /* Dark background */
-            color: #e0e0e0; /* Light text color */
+        @keyframes fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-        .container {
-            width: 60%;
-            margin: auto;
-            overflow: hidden;
-            background: linear-gradient(145deg, #1e1e1e, #2a2a2a); /* Gradient background */
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgb(19, 18, 18);
-            margin-top: 50px;
-        }
-        header {
-            background: #333;
-            color: #fff;
-            padding: 20px 0;
-            border-bottom: #9c27b0 3px solid; /* Purple accent color */
-            text-align: center;
-            border-radius: 10px 10px 0 0;
-            position: relative;
-        }
-        header img {
-            height: 40px;
-            margin-left: 20px;
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            left: 0;
-        }
-        header h1 {
-            font-size: 2.5em;
-            margin: 0;
-        }
-        .title-blast {
-            font-family: 'Orbitron', sans-serif;
-            color: #9c27b0; /* Purple color */
-        }
-        .title-gen {
-            font-family: 'Roboto', sans-serif;
-            color: #fff;
-        }
-        table {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid #444;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-        th {
-            background-color: #9c27b0; /* Purple accent color */
-            color: #121212; /* Dark text color */
-        }
-        .center {
-            text-align: center;
-        }
-        .generate-button {
-            display: block;
-            width: 100%;
-            background-color: #9c27b0; /* Purple accent color */
-            color: #121212; /* Dark text color */
-            padding: 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 18px;
-            transition: background-color 0.3s ease;
-        }
-        .generate-button:hover {
-            background-color: #7b1fa2; /* Darker purple on hover */
-        }
-        footer {
-            background: #333;
-            color: #fff;
-            text-align: center;
-            padding: 10px 0;
-            margin-top: 20px;
-            border-radius: 0 0 10px 10px;
+        .animate-fade-in {
+            animation: fade-in 1s ease-in-out;
         }
     </style>
-    <script>
-        function updateForm() {
-            var patternType = document.getElementById('pattern_type').value;
-            var connectionType = document.getElementById('connection_type').value;
-            var connectionTypeRow = document.getElementById('connection_type_row');
-            var rowDelayRow = document.getElementById('row_delay_row');
-            var diagonalDelayRow = document.getElementById('diagonal_delay_row');
-            var animationRow = document.getElementById('animation_row');
-
-            if (patternType === 'Staggered') {
-                connectionTypeRow.style.display = '';
-                if (connectionType === 'Line' || connectionType === 'Diagonal') {
-                    rowDelayRow.style.display = '';
-                    diagonalDelayRow.style.display = '';
-                    animationRow.style.display = '';
-                } else {
-                    rowDelayRow.style.display = 'none';
-                    diagonalDelayRow.style.display = 'none';
-                    animationRow.style.display = 'none';
-                }
-            } else {
-                connectionTypeRow.style.display = 'none';
-                rowDelayRow.style.display = 'none';
-                diagonalDelayRow.style.display = 'none';
-                animationRow.style.display = 'none';
-            }
-        }
-
-        document.addEventListener("DOMContentLoaded", function() {
-            updateForm();
-            document.getElementById('pattern_type').addEventListener('change', updateForm);
-            document.getElementById('connection_type').addEventListener('change', updateForm);
-        });
-    </script>
-    <script>
-        // Function to update form fields based on deck charging selection
-        function updateDeckChargingForm() {
-            const deckCharging = document.getElementById('deck_charging').value;
-
-            // Toggle visibility of deck charging details
-            const rowsToToggle = [
-                'num_decked_holes',
-                'explosive_quantity_top_kg',
-                'explosive_quantity_bottom_kg',
-                'nonel_length_top_m',
-                'nonel_length_bottom_m'
-            ];
-
-            if (deckCharging === 'Yes') {
-                rowsToToggle.forEach(id => document.getElementById(id).style.display = '');
-            } else {
-                rowsToToggle.forEach(id => document.getElementById(id).style.display = 'none');
-            }
-        }
-
-        // Function to validate number of decked holes
-        function checkDeckedHoles() {
-            const numDeckedHoles = parseInt(document.getElementById('num_decked_holes').value) || 0;
-            const numHoles = 5; // Example: total number of holes
-
-            // Toggle Nonel length fields based on condition
-            const toggleNonelRows = (numDeckedHoles === numHoles) ? 'none' : '';
-            document.getElementById('nonel_length_top_m').style.display = toggleNonelRows;
-            document.getElementById('nonel_length_bottom_m').style.display = toggleNonelRows;
-        }
-    </script>
-
-</head>
-<body>
-    <header>
-        <img src="https://companieslogo.com/img/orig/ADANIPOWER.NS-1427c780.png" alt="Adani Logo">
-        <h1><span class="title-blast">Blast</span><span class="title-gen">GEN</span></h1>
-    </header>
-    <div class="container">
-        <form method="post" action="/calculate" enctype="multipart/form-data">
-            <table>
-                <tr>
-                    <th colspan="2" class="center">Enter Blasting Details</th>
-                </tr>
-                 <tr>
-                    <td><label for="mine_name">Mine Name</label></td>
-                    <td><input type="text" id="mine_name" name="mine_name" required></td>
-                </tr>
-                 <tr>
-                    <td><label for="location">Location</label></td>
-                    <td><input type="text" id="location" name="location" required></td>
-                </tr>
-                <tr>
-                    <td><label for="Latitude">Latitude</label></td>
-                    <td><input type="number" step="0.000001" id="Latitude" name="Latitude" min="-90" max="90" required></td>
-                </tr>
-                <tr>
-                    <td><label for="Longitude">Longitude</label></td>
-                    <td><input type="number" step="0.000001" id="Longitude" name="Longitude" min="-180" max="180" required></td>
-                </tr>
-                 <tr>
-                    <td><label for="date">Date</label></td>
-                    <td><input type="date" id="date" name="date" required></td>
-                </tr>
-                <tr>
-                    <td><label for="time">Time</label></td>
-                    <td><input type="time" id="time" name="time" required></td>
-                </tr>
-                <tr>
-                    <td><label for="pattern_type">Pattern Type</label></td>
-                    <td>
-                        <select id="pattern_type" name="pattern_type">
-                            <option value="Square">Square</option>
-                            <option value="Staggered">Staggered</option>
-                        </select>
-                    </td>
-                </tr>
-                   <tr id="connection_type_row">
-       <td><label for="connection_type">Connection Type</label></td>
-       <td>
-           <select id="connection_type" name="connection_type" onchange="updateForm()">
-               <option value="None">None</option>
-               <option value="Line">Line</option>
-               <option value="Diagonal">Diagonal</option>
-           </select>
-       </td>
-   </tr>
-                <tr id="free_face">
-    <td><label for="free_face">Free Face (Select at least one)</label></td>
-    <td>
-        <label>
-            <input type="checkbox" name="free_face[]" value="top" id="free_face_top" onchange="checkMandatory()">
-            Front Free Face
-        </label><br>
-        <label>
-            <input type="checkbox" name="free_face[]" value="bottom" id="free_face_bottom" onchange="checkMandatory()">
-            Back Free Face
-        </label><br>
-        <label>
-            <input type="checkbox" name="free_face[]" value="left" id="free_face_left" onchange="checkMandatory()">
-            Left Free Face
-        </label><br>
-        <label>
-            <input type="checkbox" name="free_face[]" value="right" id="free_face_right" onchange="checkMandatory()">
-            Right Free Face
-        </label>
-    </td>
-</tr>
 
 <script>
+    function updateForm() {
+        var patternType = document.getElementById('pattern_type').value;
+        var connectionType = document.getElementById('connection_type').value;
+        var connectionTypeRow = document.getElementById('connection_type_row');
+        var rowDelayRow = document.getElementById('row_delay_row');
+        var diagonalDelayRow = document.getElementById('diagonal_delay_row');
+        var animationRow = document.getElementById('animation_row');
+
+        if (patternType === 'Staggered') {
+            connectionTypeRow.classList.remove('hidden');
+            if (connectionType === 'Line' || connectionType === 'Diagonal') {
+                rowDelayRow.classList.remove('hidden');
+                diagonalDelayRow.classList.remove('hidden');
+                animationRow.classList.remove('hidden');
+            } else {
+                rowDelayRow.classList.add('hidden');
+                diagonalDelayRow.classList.add('hidden');
+                animationRow.classList.add('hidden');
+            }
+        } else {
+            connectionTypeRow.classList.add('hidden');
+            rowDelayRow.classList.add('hidden');
+            diagonalDelayRow.classList.add('hidden');
+            animationRow.classList.add('hidden');
+        }
+    }
+
+    function updateDeckChargingForm() {
+        const deckCharging = document.getElementById('deck_charging').value;
+        const rowsToToggle = [
+            'num_decked_holes',
+            'explosive_quantity_top_kg',
+            'explosive_quantity_bottom_kg',
+            'nonel_length_top_m',
+            'nonel_length_bottom_m'
+        ];
+
+        if (deckCharging === 'Yes') {
+            rowsToToggle.forEach(id => document.getElementById(id).classList.remove('hidden'));
+        } else {
+            rowsToToggle.forEach(id => document.getElementById(id).classList.add('hidden'));
+        }
+    }
+
     function checkMandatory() {
         const topCheckbox = document.getElementById('free_face_top');
         const checkboxes = document.querySelectorAll('input[name="free_face[]"]');
         const anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
 
-        // Ensure at least one checkbox is selected, otherwise re-check "Top"
         if (!anyChecked) {
             topCheckbox.checked = true;
             alert("At least one checkbox must remain selected. 'Top' is mandatory!");
         }
     }
+
+    function checkDeckedHoles() {
+        const numDeckedHoles = parseInt(document.getElementById('num_decked_holes').value) || 0;
+        const numHoles = parseInt(document.getElementById('num_holes').value) || 0;
+        const toggleNonelRows = (numDeckedHoles === numHoles) ? 'hidden' : '';
+
+        document.getElementById('nonel_length_top_m').classList.toggle('hidden', toggleNonelRows === 'hidden');
+        document.getElementById('nonel_length_bottom_m').classList.toggle('hidden', toggleNonelRows === 'hidden');
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        updateForm();
+        updateDeckChargingForm();
+        document.getElementById('pattern_type').addEventListener('change', updateForm);
+        document.getElementById('connection_type').addEventListener('change', updateForm);
+        document.getElementById('deck_charging').addEventListener('change', updateDeckChargingForm);
+        document.getElementById('num_decked_holes').addEventListener('input', checkDeckedHoles);
+    });
 </script>
-                <tr>
-                    <td><label for="num_holes">Number of Holes</label></td>
-                    <td><input type="number" id="num_holes" name="num_holes" min="1" max="1000" required></td>
-                </tr>
-                <tr>
-                    <td><label for="deck_charging">Deck Charging</label></td>
-                    <td>
-                        <select id="deck_charging" name="deck_charging" onchange="updateDeckChargingForm()">
-                            <option value="No">No</option>
-                            <option value="Yes">Yes</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr id="num_decked_holes" style="display:none;">
-                    <td><label for="num_decked_holes">Number of Decked Charged Holes</label></td>
-                    <td><input type="number" id="num_decked_holes" name="num_decked_holes" oninput="checkDeckedHoles()" min="1" max="300"></td>
-                </tr>
-                <tr id="explosive_quantity_top_kg" style="display:none;">
-                    <td><label for="explosive_quantity_top_kg">Explosive Quantity (Top) per hole in kg</label></td>
-                    <td><input type="number" id="explosive_quantity_top_kg" name="explosive_quantity_top_kg" step="0.1" min="1" max="100"></td>
-                </tr>
-                <tr id="explosive_quantity_bottom_kg" style="display:none;">
-                    <td><label for="explosive_quantity_bottom_kg">Explosive Quantity (Bottom) per hole in kg</label></td>
-                    <td><input type="number" id="explosive_quantity_bottom_kg" name="explosive_quantity_bottom_kg" step="0.1" min="1" max="100" ></td>
-                </tr>
-                <tr id="nonel_length_top_m" style="display:none;">
-                    <td><label for="nonel_length_top_m">Nonel Length (Top) in meters</label></td>
-                    <td><input type="number" id="nonel_length_top_m" name="nonel_length_top_m" step="0.1" min="1" max="100"></td>
-                </tr>
-                <tr id="nonel_length_bottom_m" style="display:none;">
-                    <td><label for="nonel_length_bottom_m">Nonel Length (Bottom) in meters</label></td>
-                    <td><input type="number" id="nonel_length_bottom_m" name="nonel_length_bottom_m" step="0.1" min="1" max="100"></td>
-                </tr>
 
-                <tr>
-                    <td><label for="burden">Average Burden (m)</label></td>
-                    <td><input type="number" step="0.01" id="burden" name="burden" min="1" max="15" required></td>
-                </tr>
-                <tr>
-                    <td><label for="spacing">Average Spacing (m)</label></td>
-                    <td><input type="number" step="0.01" id="spacing" name="spacing" min="1" max="15" required></td>
-                </tr>
-                <tr>
-                    <td><label for="num_rows">Number of Rows</label></td>
-                    <td><input type="number" id="num_rows" name="num_rows" min="1" max="20" required></td>
-                </tr>
-                <tr>
-                    <td><label for="diameter_mm">Hole Diameter (mm)</label></td>
-                    <td><input type="number" step="0.01" id="diameter_mm" name="diameter_mm" min="10" max="500" required></td>
-                </tr>
-                <tr>
-                    <td><label for="depth_m">Average Hole Depth (m)</label></td>
-                    <td><input type="number" step="0.01" id="depth_m" name="depth_m" min="1" max="50" required></td>
-                </tr>
-                <tr>
-                    <td><label for="explosive_type">Explosive Type</label></td>
-                    <td><input type="text" id="explosive_type" name="explosive_type" required></td>
-                </tr>
-                <tr>
-                    <td><label for="explosive_density_g_cm3">Explosive Density (g/cm³)</label></td>
-                    <td><input type="number" step="0.01" id="explosive_density_g_cm3" name="explosive_density_g_cm3" min="1" max="10" required></td>
-                </tr>
-                <tr>
-                    <td><label for="total_explosive_quantity_kg">Total Explosive Quantity (kg)</label></td>
-                    <td><input type="number" step="0.01" id="total_explosive_quantity_kg" name="total_explosive_quantity_kg" min="5" max="100000" required></td>
-                </tr>
-                <tr>
-    		    <td><label for="nonel_length_m">Nonel Length (m)</label></td>
-                <td><input type="number" step="0.01" id="nonel_length_m" name="nonel_length_m" min="1" max="15" required></td>
-                </tr>
-                </tr>
-                <tr>
-                    <td><label for="electronic_detonators">Electronic Detonators Used</label></td>
-                    <td><input type="number" step="1" id="electronic_detonators" name="electronic_detonators" min="1" max="20" required></td>
-                </tr>
-                <tr>
-                    <td><label for="electrical_detonators">Electrical Detonators Used</label></td>
-                    <td><input type="number" step="1" id="electrical_detonators" name="electrical_detonators" min="1" max="20" required></td>
-                </tr>
-                <tr>
-                    <td><label for="booster_quantity_g">Booster Quantity per hole (g)</label></td>
-                    <td><input type="number" step="0.01" id="booster_quantity_g" name="booster_quantity_g" min="1" max="10000" required></td>
-                </tr>
-                <tr>
-                    <td><label for="rock_density">Rock Density (g/cm³)</label></td>
-                    <td><input type="number" step="0.01" id="rock_density" name="rock_density" min="1" max="100" required></td>
-                </tr>
-                <tr>
-                    <td><label for="distance">Distance to Measurement Point (m)</label></td>
-                    <td><input type="number" step="0.01" id="distance" name="distance" min="1" max="1000" required></td>
-                </tr>
-                <tr>
-                    <td><label for="k_constant">K Constant (Value as per Site Study=9907.03)</label></td>
-                    <td><input type="number" step="0.01" id="k_constant" name="k_constant" min="0.1" max="10000" required></td>
-                </tr>
-                <tr>
-                    <td><label for="e_constant">E Constant (Value as per Site Study=2.12)</label></td>
-                    <td><input type="number" step="0.01" id="e_constant" name="e_constant" min="0.1" max="1000" required></td>
-                </tr>
-                <tr id="row_delay_row">
-                    <td><label for="row_delay">Row Delay (ms)</label></td>
-                    <td><input type="number" step="0.01" id="row_delay" name="row_delay" min="0" max="1000"></td>
-                </tr>
-                <tr id="diagonal_delay_row">
-                    <td><label for="diagonal_delay">Diagonal Delay (ms)</label></td>
-                    <td><input type="number" step="0.01" id="diagonal_delay" name="diagonal_delay" min="0" max="1000"></td>
-                </tr>
-                <tr id="animation_row">
-                    <td><label for="user_input">Simulation</label></td>
-                    <td>
-                        <select id="user_input" name="user_input">
-                            <option value="yes">Yes</option>
-                            <option value="no">No</option>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <td><label for="explosive_cost_kg">Explosive Cost per Kg (₹)</label></td>
-                    <td><input type="number" step="0.1" id="explosive_cost_kg" name="explosive_cost_kg" min="0" required></td>
-                </tr>
-                 <tr>
-                    <td><label for="booster_cost_kg">Booster Cost per Kg (₹)</label></td>
-                    <td><input type="number" step="0.1" id="booster_cost_kg" name="booster_cost_kg" min="0" required></td>
-                </tr>
-                 <tr>
-                    <td><label for="nonel_cost_m">Nonel Cost per Meter (₹)</label></td>
-                    <td><input type="number" step="0.1" id="nonel_cost_m" name="nonel_cost_m" min="0" required></td>
-                </tr>
-                <tr>
-                    <td><label for="post_blast_image">Post-Blast Image</label></td>
-                    <td><input type="file" id="post_blast_image" name="post_blast_image" accept="image/*"></td>
-                </tr>
-            </table>
-            <button type="submit" class="generate-button">Generate</button>
-        </form>
-    </div>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans">
 
-    <footer>
-        <script>
-        // Dynamically update the copyright year
-        document.getElementById('year').textContent = new Date().getFullYear();
-        </script>
-    </footer>
+    <!-- Header -->
+    <header class="bg-white dark:bg-gray-800 shadow-md p-5 flex justify-between items-center">
+        <img src="https://companieslogo.com/img/orig/ADANIPOWER.NS-1427c780.png" alt="Adani Logo" class="h-10">
+        <h1 class="text-3xl font-extrabold tracking-tight">BlastGEN</h1>
+        <button id="theme-toggle" class="bg-gray-300 dark:bg-gray-700 px-4 py-2 rounded transition duration-300">
+            Theme Toggle
+        </button>
+    </header>
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto px-6 py-10 animate-fade-in">
+        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+            <h2 class="text-2xl font-bold mb-6 text-center">Enter Blasting Details</h2>
+            <form method="post" action="/calculate" enctype="multipart/form-data" class="grid gap-6 md:grid-cols-2">
+                <div>
+                    <label for="mine_name" class="block mb-1 font-medium">Mine Name</label>
+                    <input type="text" id="mine_name" name="mine_name" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div>
+                    <label for="location" class="block mb-1 font-medium">Location</label>
+                    <input type="text" id="location" name="location" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div>
+                    <label for="Latitude" class="block mb-1 font-medium">Latitude</label>
+                    <input type="number" step="0.000001" id="Latitude" name="Latitude" min="-90" max="90" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div>
+                    <label for="Longitude" class="block mb-1 font-medium">Longitude</label>
+                    <input type="number" step="0.000001" id="Longitude" name="Longitude" min="-180" max="180" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div>
+                    <label for="date" class="block mb-1 font-medium">Date</label>
+                    <input type="date" id="date" name="date" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div>
+                    <label for="time" class="block mb-1 font-medium">Time</label>
+                    <input type="time" id="time" name="time" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div>
+                    <label for="pattern_type" class="block mb-1 font-medium">Pattern Type</label>
+                    <select id="pattern_type" name="pattern_type" class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                        <option value="Square">Square</option>
+                        <option value="Staggered">Staggered</option>
+                    </select>
+                </div>
+                <div id="connection_type_row" class="hidden">
+                    <label for="connection_type" class="block mb-1 font-medium">Connection Type</label>
+                    <select id="connection_type" name="connection_type" class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                        <option value="None">None</option>
+                        <option value="Line">Line</option>
+                        <option value="Diagonal">Diagonal</option>
+                    </select>
+                </div>
+                <div id="free_face" class="md:col-span-2">
+                    <label for="free_face" class="block mb-1 font-medium">Free Face (Select at least one)</label>
+                    <div class="flex flex-wrap gap-4">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="free_face[]" value="top" id="free_face_top" class="mr-2" onchange="checkMandatory()">
+                            Front Free Face
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="free_face[]" value="bottom" id="free_face_bottom" class="mr-2" onchange="checkMandatory()">
+                            Back Free Face
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="free_face[]" value="left" id="free_face_left" class="mr-2" onchange="checkMandatory()">
+                            Left Free Face
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" name="free_face[]" value="right" id="free_face_right" class="mr-2" onchange="checkMandatory()">
+                            Right Free Face
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <label for="num_holes" class="block mb-1 font-medium">Number of Holes</label>
+                    <input type="number" id="num_holes" name="num_holes" min="1" max="1000" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div>
+                    <label for="deck_charging" class="block mb-1 font-medium">Deck Charging</label>
+                    <select id="deck_charging" name="deck_charging" class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600" onchange="updateDeckChargingForm()">
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                    </select>
+                </div>
+                <div id="num_decked_holes" class="hidden">
+                    <label for="num_decked_holes" class="block mb-1 font-medium">Number of Decked Charged Holes</label>
+                    <input type="number" id="num_decked_holes" name="num_decked_holes" min="1" max="300" class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600" oninput="checkDeckedHoles()">
+                </div>
+                <div id="explosive_quantity_top_kg" class="hidden">
+                    <label for="explosive_quantity_top_kg" class="block mb-1 font-medium">Explosive Quantity (Top) per hole in kg</label>
+                    <input type="number" id="explosive_quantity_top_kg" name="explosive_quantity_top_kg" step="0.1" min="1" max="100" class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div id="explosive_quantity_bottom_kg" class="hidden">
+                    <label for="explosive_quantity_bottom_kg" class="block mb-1 font-medium">Explosive Quantity (Bottom) per hole in kg</label>
+                    <input type="number" id="explosive_quantity_bottom_kg" name="explosive_quantity_bottom_kg" step="0.1" min="1" max="100" class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div id="nonel_length_top_m" class="hidden">
+                    <label for="nonel_length_top_m" class="block mb-1 font-medium">Nonel Length (Top) in meters</label>
+                    <input type="number" id="nonel_length_top_m" name="nonel_length_top_m" step="0.1" min="1" max="100" class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div id="nonel_length_bottom_m" class="hidden">
+                    <label for="nonel_length_bottom_m" class="block mb-1 font-medium">Nonel Length (Bottom) in meters</label>
+                    <input type="number" id="nonel_length_bottom_m" name="nonel_length_bottom_m" step="0.1" min="1" max="100" class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div>
+                    <label for="burden" class="block mb-1 font-medium">Average Burden (m)</label>
+                    <input type="number" step="0.01" id="burden" name="burden" min="1" max="15" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div>
+                    <label for="spacing" class="block mb-1 font-medium">Average Spacing (m)</label>
+                    <input type="number" step="0.01" id="spacing" name="spacing" min="1" max="15" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div>
+                    <label for="num_rows" class="block mb-1 font-medium">Number of Rows</label>
+                    <input type="number" id="num_rows" name="num_rows" min="1" max="20" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div>
+                    <label for="diameter_mm" class="block mb-1 font-medium">Hole Diameter (mm)</label>
+                    <input type="number" step="0.01" id="diameter_mm" name="diameter_mm" min="10" max="500" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div>
+                    <label for="depth_m" class="block mb-1 font-medium">Average Hole Depth (m)</label>
+                    <input type="number" step="0.01" id="depth_m" name="depth_m" min="1" max="50" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div>
+                    <label for="explosive_type" class="block mb-1 font-medium">Explosive Type</label>
+                    <input type="text" id="explosive_type" name="explosive_type" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div>
+                    <label for="explosive_density_g_cm3" class="block mb-1 font-medium">Explosive Density (g/cm³)</label>
+                    <input type="number" step="0.01" id="explosive_density_g_cm3" name="explosive_density_g_cm3" min="1" max="10" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div>
+                    <label for="total_explosive_quantity_kg" class="block mb-1 font-medium">Total Explosive Quantity (kg)</label>
+                    <input type="number" step="0.01" id="total_explosive_quantity_kg" name="total_explosive_quantity_kg" min="5" max="100000" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
+                <div>
+                    <label for="nonel_length_m" class="block mb-1 font-medium">Nonel Length (m)</label>
+                    <input type="number" step="0.01" id="nonel_length_m" name="nonel_length_m" min="1" max="15" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                </div>
 
+        <div>
+            <label for="electronic_detonators" class="block mb-1 font-medium">Electronic Detonators Used</label>
+            <input type="number" step="1" id="electronic_detonators" name="electronic_detonators" min="1" max="20" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+        </div>
+        <div>
+            <label for="electrical_detonators" class="block mb-1 font-medium">Electrical Detonators Used</label>
+            <input type="number" step="1" id="electrical_detonators" name="electrical_detonators" min="1" max="20" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+        </div>
+        <div>
+            <label for="booster_quantity_g" class="block mb-1 font-medium">Booster Quantity per hole (g)</label>
+            <input type="number" step="0.01" id="booster_quantity_g" name="booster_quantity_g" min="1" max="10000" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+        </div>
+        <div>
+            <label for="rock_density" class="block mb-1 font-medium">Rock Density (g/cm³)</label>
+            <input type="number" step="0.01" id="rock_density" name="rock_density" min="1" max="100" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+        </div>
+        <div>
+            <label for="distance" class="block mb-1 font-medium">Distance to Measurement Point (m)</label>
+            <input type="number" step="0.01" id="distance" name="distance" min="1" max="1000" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+        </div>
+        <div>
+            <label for="k_constant" class="block mb-1 font-medium">K Constant (Value as per Site Study=9907.03)</label>
+            <input type="number" step="0.01" id="k_constant" name="k_constant" min="0.1" max="10000" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+        </div>
+        <div>
+            <label for="e_constant" class="block mb-1 font-medium">E Constant (Value as per Site Study=2.12)</label>
+            <input type="number" step="0.01" id="e_constant" name="e_constant" min="0.1" max="1000" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+        </div>
+        <div id="row_delay_row" class="hidden">
+            <label for="row_delay" class="block mb-1 font-medium">Row Delay (ms)</label>
+            <input type="number" step="0.01" id="row_delay" name="row_delay" min="0" max="1000" class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+        </div>
+        <div id="diagonal_delay_row" class="hidden">
+            <label for="diagonal_delay" class="block mb-1 font-medium">Diagonal Delay (ms)</label>
+            <input type="number" step="0.01" id="diagonal_delay" name="diagonal_delay" min="0" max="1000" class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+        </div>
+        <div id="animation_row" class="hidden">
+            <label for="user_input" class="block mb-1 font-medium">Simulation</label>
+            <select id="user_input" name="user_input" class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+            </select>
+        </div>
+        <div>
+            <label for="explosive_cost_kg" class="block mb-1 font-medium">Explosive Cost per Kg (₹)</label>
+            <input type="number" step="0.1" id="explosive_cost_kg" name="explosive_cost_kg" min="0" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+        </div>
+        <div>
+            <label for="booster_cost_kg" class="block mb-1 font-medium">Booster Cost per Kg (₹)</label>
+            <input type="number" step="0.1" id="booster_cost_kg" name="booster_cost_kg" min="0" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+        </div>
+        <div>
+            <label for="nonel_cost_m" class="block mb-1 font-medium">Nonel Cost per Meter (₹)</label>
+            <input type="number" step="0.1" id="nonel_cost_m" name="nonel_cost_m" min="0" required class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+        </div>
+        <div>
+            <label for="post_blast_image" class="block mb-1 font-medium">Post-Blast Image</label>
+            <input type="file" id="post_blast_image" name="post_blast_image" accept="image/*" class="w-full px-4 py-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+        </div>
+<div class="md:col-span-2 text-center mt-4">
+    <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition duration-300">
+        Generate
+    </button>
+</div>
+</form>
+</section>
+</main>
+<!-- Footer -->
+<footer class="text-center py-4 text-sm text-gray-600 dark:text-gray-400">
+    © <span id="year"></span> BlastGEN. All rights reserved. Designed and Developed by Krunal Chulbulkar
+</footer>
+<!-- JavaScript: Dark Mode & Footer Year -->
+<script>
+    const toggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+    // Apply saved theme
+    if (localStorage.getItem('theme') === 'dark') {
+        html.classList.add('dark');
+    } else {
+        html.classList.remove('dark');
+    }
+    toggle.addEventListener('click', () => {
+        html.classList.toggle('dark');
+        localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+    });
+    document.getElementById("year").textContent = new Date().getFullYear();
+</script>
 </body>
 </html>
+
