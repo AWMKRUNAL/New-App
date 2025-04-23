@@ -397,7 +397,7 @@ def calculate():
         img_width, img_height = img.size
 
         # Define dynamic padding (for proportional scaling)
-        padding = max(img_width, img_height) // 50  # Adjust 1/50th of the largest dimension
+        padding = max(img_width, img_height) // 30  # Adjust 1/50th of the largest dimension
 
         # Define the text position dynamically (e.g., 5% inset from top-left)
         x_offset = img_width // 20  # 5% inset from left
@@ -549,7 +549,7 @@ def calculate():
         img_width, img_height = img.size
 
         # Define dynamic padding (for proportional scaling)
-        padding = max(img_width, img_height) // 50  # Adjust 1/50th of the largest dimension
+        padding = max(img_width, img_height) // 20  # Adjust 1/50th of the largest dimension
 
         # Define the text position dynamically (e.g., 5% inset from top-left)
         x_offset = img_width // 20  # 5% inset from left
