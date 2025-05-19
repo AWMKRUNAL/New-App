@@ -341,9 +341,9 @@ def calculate():
     row_delay = float(request.form.get('row_delay',0) or 0)
     diagonal_delay = float(request.form.get('diagonal_delay',0) or 0)
     user_input =request.form['user_input']
-    explosive_cost_kg = float(request.form['explosive_cost_kg'])
-    booster_cost_kg = float(request.form['booster_cost_kg'])
-    nonel_cost_m = float(request.form['nonel_cost_m'])
+    #explosive_cost_kg = float(request.form['explosive_cost_kg'])
+    #booster_cost_kg = float(request.form['booster_cost_kg'])
+    #nonel_cost_m = float(request.form['nonel_cost_m'])
     electronic_detonators = int(request.form['electronic_detonators'])
     electrical_detonators = int(request.form['electrical_detonators'])
     explosive_quantity_kg = total_explosive_quantity_kg / num_holes
@@ -358,13 +358,13 @@ def calculate():
     charge_per_hole = explosive_quantity_kg + booster_quantity_g/1000
     #ppv = calculate_ppv(distance,charge_per_hole,k_constant,e_constant)
     mean_fragmentation_size = 12.4 * (burden*spacing*depth_m/charge_per_hole )**0.8* charge_per_hole **0.167
-    total_explosive_cost= total_explosive_quantity_kg*explosive_cost_kg
-    total_booster_cost = (total_booster_quantity_g / 1000) *booster_cost_kg
-    total_nonel_length = 0
-    if pattern_type == 'Staggered' and connection_type != 'None':
-        total_nonel_length = (num_holes * spacing) + (num_holes * nonel_length_m)
+    #total_explosive_cost= total_explosive_quantity_kg*explosive_cost_kg
+    #total_booster_cost = (total_booster_quantity_g / 1000) *booster_cost_kg
+    #total_nonel_length = 0
+    #if pattern_type == 'Staggered' and connection_type != 'None':
+        #total_nonel_length = (num_holes * spacing) + (num_holes * nonel_length_m)
 
-    total_blasting_cost = total_explosive_cost + total_booster_cost + total_nonel_length * nonel_cost_m
+    #total_blasting_cost = total_explosive_cost + total_booster_cost + total_nonel_length * nonel_cost_m
     explosive_density_kg_m3 = explosive_density_g_cm3 * 1000
     charge_height = explosive_quantity_kg / (explosive_density_kg_m3 * (diameter_mm / 1000) ** 2 * 3.141592653589793 / 4)
     stemming_distance_m = depth_m - charge_height
