@@ -377,55 +377,44 @@ def calculate():
 
         img = Image.open(image_path)
         draw = ImageDraw.Draw(img)
+        font = ImageFont.load_default()
 
-        # Use a scalable font (fallback to default if truetype font not available)
-        try:
-            font_size = max(10, min(img_width, img_height) // 60)
-            font = ImageFont.truetype("arial.ttf", size=font_size)
-        except IOError:
-            font = ImageFont.load_default()
-        
         # Define the text to be added
         text = (f"Mine Name: {mine_name}\n"
-                f"Date: {date_str}\n"
-                f"Time: {time_str}\n"
-                f"Location: {location}\n"
-                f"Latitude: {Latitude}\n"
-                f"Longitude: {Longitude}")
-        
+                f"Date : {date_str}"
+                f"Time : {time_str}"
+                f"Location: {location}"
+                f"Latitude : {Latitude}"
+                f"Longitude : {Longitude}")
+
         # Calculate the text size
         text_bbox = draw.textbbox((0, 0), text, font=font)
         text_width = text_bbox[2] - text_bbox[0]
         text_height = text_bbox[3] - text_bbox[1]
-        
+
         # Image dimensions
         img_width, img_height = img.size
-        
-        # Padding and position (bottom-right corner)
-        padding = max(img_width, img_height) // 60
-        x_offset = img_width - text_width - 2 * padding
-        y_offset = img_height - text_height - 2 * padding
-        text_position = (x_offset, y_offset)
-        
-        # Define the box coordinates
-        box_coords = [
-            (text_position[0] - padding, text_position[1] - padding),
-            (text_position[0] + text_width + padding, text_position[1] + text_height + padding)
-        ]
-        
-        # Draw semi-transparent background (white with alpha)
-        overlay = Image.new('RGBA', img.size, (255, 255, 255, 0))
-        overlay_draw = ImageDraw.Draw(overlay)
-        overlay_draw.rectangle(box_coords, fill=(255, 255, 255, 200), outline="black")
-        
-        # Merge overlay with original image
-        img = img.convert("RGBA")
-        img = Image.alpha_composite(img, overlay)
-        
-        # Draw the text
-        draw = ImageDraw.Draw(img)
-        draw.multiline_text(text_position, text, fill="black", font=font)
 
+        # Define dynamic padding (for proportional scaling)
+        padding = max(img_width, img_height) // 30  # Adjust 1/50th of the largest dimension
+
+        # Define the text position dynamically (e.g., 5% inset from top-left)
+        x_offset = img_width // 20  # 5% inset from left
+        y_offset = img_height // 20  # 5% inset from top
+        text_position = (x_offset, y_offset)
+
+        # Define the box coordinates dynamically
+        box_coords = [
+            (text_position[0] - padding, text_position[1] - padding),  # Top-left of the box
+            (text_position[0] + text_width + padding, text_position[1] + text_height + padding)
+            # Bottom-right of the box
+        ]
+
+        # Draw the background rectangle with padding (semi-transparent if needed)
+        draw.rectangle(box_coords, fill="white", outline="black")
+
+        # Draw the text on top of the rectangle
+        draw.multiline_text(text_position, text, fill="black", font=font)
 
         # Convert the image to Base64
         img_byte_arr = BytesIO()
@@ -760,10 +749,6 @@ def calculate():
             combined_hole_diagram_base64 = base64.b64encode(combined_hole_diagram_img.getvalue()).decode('utf-8')
     elif deck_charging.lower() == "no":
         combined_hole_diagram_base64 = None
-
-
-
-
 
     return render_template('plot.html',summary_table= df_summary.values,blasting_pattern=blasting_pattern_base64,single_hole_diagram=single_hole_diagram_base64,combined_hole_diagram=combined_hole_diagram_base64,animation_html=animation_html,post_blast_image=post_blast_image_base64)
 
