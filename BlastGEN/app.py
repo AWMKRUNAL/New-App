@@ -388,7 +388,7 @@ def calculate():
 
         # Define the text position dynamically (e.g., 5% inset from top-left)
         x_offset = img_width // 20  # 5% inset from left
-        y_offset = img_height // 5 # 5% inset from top
+        y_offset = padding # 5% inset from top
         text_position = (x_offset, y_offset)
 
         # Define the box coordinates dynamically
