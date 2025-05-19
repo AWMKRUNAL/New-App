@@ -368,12 +368,12 @@ def calculate():
         font = ImageFont.load_default()
 
         # Define the text to be added
-        text = (f"Mine Name: {mine_name}"
-                f"Date : {date_str}"
-                f"Time : {time_str}"
-                f"Location: {location}"
-                f"Latitude : {Latitude}"
-                f"Longitude : {Longitude}")
+        text = (f"Mine Name: {mine_name} "
+                f"Date : {date_str} "
+                f"Time : {time_str} "
+                f"Location: {location} "
+                f"Latitude : {Latitude} "
+                f"Longitude : {Longitude} ")
 
         # Calculate the text size
         text_bbox = draw.textbbox((0, 0), text, font=font)
@@ -384,11 +384,11 @@ def calculate():
         img_width, img_height = img.size
 
         # Define dynamic padding (for proportional scaling)
-        padding = max(img_width, img_height) // 30  # Adjust 1/50th of the largest dimension
+        padding = max(img_width, img_height) // 50  # Adjust 1/50th of the largest dimension
 
         # Define the text position dynamically (e.g., 5% inset from top-left)
-        x_offset = img_width // 20  # 5% inset from left
-        y_offset = img_height // 20  # 5% inset from top
+        x_offset = img_width  # 5% inset from left
+        y_offset = img_height  # 5% inset from top
         text_position = (x_offset, y_offset)
 
         # Define the box coordinates dynamically
@@ -520,12 +520,12 @@ def calculate():
         font = ImageFont.load_default()
 
         ## Define the text to be added
-        text = (f"Mine Name: {mine_name}\n"
-                f"Date : {date_str}"
-                f"Time : {time_str}"
-                f"Location: {location}"
-                f"Latitude : {Latitude}"
-                f"Longitude : {Longitude}")
+        text = (f"Mine Name: {mine_name} "
+                f"Date : {date_str} "
+                f"Time : {time_str} "
+                f"Location: {location} "
+                f"Latitude : {Latitude} "
+                f"Longitude : {Longitude} ")
 
         # Calculate the text size
         text_bbox = draw.textbbox((0, 0), text, font=font)
