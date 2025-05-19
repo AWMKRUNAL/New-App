@@ -384,11 +384,11 @@ def calculate():
         img_width, img_height = img.size
 
         # Define dynamic padding (for proportional scaling)
-        padding = max(img_width, img_height) // 30  # Adjust 1/50th of the largest dimension
+        padding = max(img_width, img_height) // 50  # Adjust 1/50th of the largest dimension
 
         # Define the text position dynamically (e.g., 5% inset from top-left)
         x_offset = img_width // 20  # 5% inset from left
-        y_offset = img_height // 20 # 5% inset from top
+        y_offset = img_height // 5 # 5% inset from top
         text_position = (x_offset, y_offset)
 
         # Define the box coordinates dynamically
