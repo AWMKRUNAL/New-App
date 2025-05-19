@@ -25,9 +25,9 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def calculate_charge_height(rock_density, explosive_density, hole_length):
     return (rock_density / explosive_density)* hole_length
 
-def calculate_ppv(distance,charge_per_hole, k, e):
-    scaled_distance = distance / (charge_per_hole**0.5)
-    return k * (scaled_distance ** -e)
+#def calculate_ppv(distance,charge_per_hole, k, e):
+    #scaled_distance = distance / (charge_per_hole**0.5)
+    #return k * (scaled_distance ** -e)
 
 def generate_blasting_pattern(pattern_type, num_holes, burden, spacing, num_rows):
     positions = []
@@ -337,8 +337,7 @@ def calculate():
                                                                                              '').lower() == "yes" else 0.0
 
     distance = float(request.form['distance'])
-    k_constant = float(request.form['k_constant'])
-    e_constant = float(request.form['e_constant'])
+    ppv = float(request.form['ppv']);
     row_delay = float(request.form.get('row_delay',0) or 0)
     diagonal_delay = float(request.form.get('diagonal_delay',0) or 0)
     user_input =request.form['user_input']
@@ -357,7 +356,7 @@ def calculate():
     volume_of_patch_m3 = depth_m*spacing*burden*num_holes
     powder_factor = volume_of_patch_m3/(total_explosive_quantity_kg + total_booster_quantity_g/1000)
     charge_per_hole = explosive_quantity_kg + booster_quantity_g/1000
-    ppv = calculate_ppv(distance,charge_per_hole,k_constant,e_constant)
+    #ppv = calculate_ppv(distance,charge_per_hole,k_constant,e_constant)
     mean_fragmentation_size = 12.4 * (burden*spacing*depth_m/charge_per_hole )**0.8* charge_per_hole **0.167
     total_explosive_cost= total_explosive_quantity_kg*explosive_cost_kg
     total_booster_cost = (total_booster_quantity_g / 1000) *booster_cost_kg
@@ -378,44 +377,47 @@ def calculate():
 
         img = Image.open(image_path)
         draw = ImageDraw.Draw(img)
+        
+
+
+    # Define the text to be added
+    text = (f"Mine Name: {mine_name}"
+            f"Date : {date_str}"
+            f"Time : {time_str}"
+            f"Location: {location}"
+            f"Latitude : {Latitude}"
+            f"Longitude : {Longitude}")
+
+    # Image dimensions
+    img_width, img_height = img.size
+
+    # Dynamic font size and padding
+    font_size = max(img_width, img_height) // 50  # 2% of the largest dimension
+    padding = max(img_width, img_height) // 60    # 1.67% of the largest dimension
+
+    try:
+        font = ImageFont.truetype("arial.ttf", font_size)
+    except IOError:
         font = ImageFont.load_default()
 
-        # Define the text to be added
-        text = (f"Mine Name: {mine_name}\n"
-                f"Date : {date_str}\n"
-                f"Time : {time_str}\n"
-                f"Location: {location}\n"
-                f"Latitude : {Latitude}\n"
-                f"Longitude : {Longitude}")
+    # Calculate text size
+    text_bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = text_bbox[2] - text_bbox[0]
+    text_height = text_bbox[3] - text_bbox[1]
 
-        # Calculate the text size
-        text_bbox = draw.textbbox((0, 0), text, font=font)
-        text_width = text_bbox[2] - text_bbox[0]
-        text_height = text_bbox[3] - text_bbox[1]
+    # Position text at top-left with margin
+    x_offset = img_width // 30
+    y_offset = img_height // 30
+    text_position = (x_offset, y_offset)
 
-        # Image dimensions
-        img_width, img_height = img.size
+    # Draw background box
+    box_coords = [
+        (text_position[0] - padding, text_position[1] - padding),
+        (text_position[0] + text_width + padding, text_position[1] + text_height + padding)
+    ]
+    draw.rectangle(box_coords, fill="white", outline="black")
+    draw.multiline_text(text_position, text, fill="black", font=font)
 
-        # Define dynamic padding (for proportional scaling)
-        padding = max(img_width, img_height) // 30  # Adjust 1/50th of the largest dimension
-
-        # Define the text position dynamically (e.g., 5% inset from top-left)
-        x_offset = img_width // 20  # 5% inset from left
-        y_offset = img_height // 20  # 5% inset from top
-        text_position = (x_offset, y_offset)
-
-        # Define the box coordinates dynamically
-        box_coords = [
-            (text_position[0] - padding, text_position[1] - padding),  # Top-left of the box
-            (text_position[0] + text_width + padding, text_position[1] + text_height + padding)
-            # Bottom-right of the box
-        ]
-
-        # Draw the background rectangle with padding (semi-transparent if needed)
-        draw.rectangle(box_coords, fill="white", outline="black")
-
-        # Draw the text on top of the rectangle
-        draw.multiline_text(text_position, text, fill="black", font=font)
 
         # Convert the image to Base64
         img_byte_arr = BytesIO()
@@ -530,44 +532,45 @@ def calculate():
         # Use PIL for image processing
         img = Image.open(blasting_pattern_img)
         draw = ImageDraw.Draw(img)
+        
+
+    # Define the text to be added
+    text = (f"Mine Name: {mine_name}"
+            f"Date : {date_str}"
+            f"Time : {time_str}"
+            f"Location: {location}"
+            f"Latitude : {Latitude}"
+            f"Longitude : {Longitude}")
+
+    # Image dimensions
+    img_width, img_height = img.size
+
+    # Dynamic font size and padding
+    font_size = max(img_width, img_height) // 50  # 2% of the largest dimension
+    padding = max(img_width, img_height) // 60    # 1.67% of the largest dimension
+
+    try:
+        font = ImageFont.truetype("arial.ttf", font_size)
+    except IOError:
         font = ImageFont.load_default()
 
-        ## Define the text to be added
-        text = (f"Mine Name: {mine_name}\n"
-                f"Date : {date_str}\n"
-                f"Time : {time_str}\n"
-                f"Location: {location}\n"
-                f"Latitude : {Latitude}\n"
-                f"Longitude : {Longitude}")
+    # Calculate text size
+    text_bbox = draw.textbbox((0, 0), text, font=font)
+    text_width = text_bbox[2] - text_bbox[0]
+    text_height = text_bbox[3] - text_bbox[1]
 
-        # Calculate the text size
-        text_bbox = draw.textbbox((0, 0), text, font=font)
-        text_width = text_bbox[2] - text_bbox[0]
-        text_height = text_bbox[3] - text_bbox[1]
+    # Position text at top-left with margin
+    x_offset = img_width // 30
+    y_offset = img_height // 30
+    text_position = (x_offset, y_offset)
 
-        # Image dimensions
-        img_width, img_height = img.size
-
-        # Define dynamic padding (for proportional scaling)
-        padding = max(img_width, img_height) // 20  # Adjust 1/50th of the largest dimension
-
-        # Define the text position dynamically (e.g., 5% inset from top-left)
-        x_offset = img_width // 20  # 5% inset from left
-        y_offset = img_height // 20  # 5% inset from top
-        text_position = (x_offset, y_offset)
-
-        # Define the box coordinates dynamically
-        box_coords = [
-            (text_position[0] - padding, text_position[1] - padding),  # Top-left of the box
-            (text_position[0] + text_width + padding, text_position[1] + text_height + padding)
-            # Bottom-right of the box
-        ]
-
-        # Draw the background rectangle with padding (semi-transparent if needed)
-        draw.rectangle(box_coords, fill="white", outline="black")
-
-        # Draw the text on top of the rectangle
-        draw.multiline_text(text_position, text, fill="black", font=font)
+    # Draw background box
+    box_coords = [
+        (text_position[0] - padding, text_position[1] - padding),
+        (text_position[0] + text_width + padding, text_position[1] + text_height + padding)
+    ]
+    draw.rectangle(box_coords, fill="white", outline="black")
+    draw.multiline_text(text_position, text, fill="black", font=font)
 
         # Convert the annotated image to Base64
         annotated_img_byte_arr = BytesIO()
