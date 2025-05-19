@@ -336,7 +336,6 @@ def calculate():
     nonel_length_bottom_m = float(request.form['nonel_length_bottom_m']) if request.form.get('deck_charging',
                                                                                              '').lower() == "yes" else 0.0
 
-    distance = float(request.form['distance'])
     ppv = float(request.form['ppv'])
     row_delay = float(request.form.get('row_delay',0) or 0)
     diagonal_delay = float(request.form.get('diagonal_delay',0) or 0)
