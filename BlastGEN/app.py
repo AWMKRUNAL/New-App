@@ -365,10 +365,15 @@ def calculate():
 
         img = Image.open(image_path)
         draw = ImageDraw.Draw(img)
-        font = ImageFont.load_default()
+        
+        # Try to load a larger font size using a bundled font
+        try:
+            font = ImageFont.truetype("DejaVuSans-Bold.ttf", 24)  # You can increase the size here
+        except IOError:
+            font = ImageFont.load_default()  
 
         # Define the text to be added
-        text = (f"Mine Name: {mine_name}\n"
+        text = (f"Mine Name: {mine_name}"
                 f"Date : {date_str}"
                 f"Time : {time_str}"
                 f"Location: {location}"
