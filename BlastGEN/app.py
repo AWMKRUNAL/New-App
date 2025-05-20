@@ -365,7 +365,7 @@ def calculate():
 
         img = Image.open(image_path)
         draw = ImageDraw.Draw(img)
-        font = ImageFont.truetype("ttf/DejaVuSans.ttf", size=20)
+        font = ImageFont.truetype("ttf/DejaVuSans.ttf", size=16)
 
         # Define the text to be added
         text = (f"Mine Name: {mine_name} "
