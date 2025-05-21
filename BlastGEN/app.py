@@ -365,7 +365,7 @@ def calculate():
 
         img = Image.open(image_path)
         draw = ImageDraw.Draw(img)
-        font = ImageFont.truetype("ttf/DejaVuSans.ttf", size=16)
+        font = ImageFont.truetype("ttf/DejaVuSans.ttf", size=18)
 
         # Define the text to be added
         text = (f"Mine Name: {mine_name} "
@@ -517,7 +517,7 @@ def calculate():
         # Use PIL for image processing
         img = Image.open(blasting_pattern_img)
         draw = ImageDraw.Draw(img)
-        font = ImageFont.truetype("ttf/DejaVuSans.ttf", size=20)
+        font = ImageFont.truetype("ttf/DejaVuSans.ttf", size=18)
 
         ## Define the text to be added
         text = (f"Mine Name: {mine_name} "
