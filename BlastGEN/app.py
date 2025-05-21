@@ -365,15 +365,15 @@ def calculate():
 
         img = Image.open(image_path)
         draw = ImageDraw.Draw(img)
-        font = ImageFont.truetype("ttf/DejaVuSans.ttf", size=18)
+        font = ImageFont.truetype("ttf/DejaVuSans.ttf", size=26)
 
         # Define the text to be added
-        text = (f"Mine Name: {mine_name} "
-                f"Date : {date_str} "
-                f"Time : {time_str} "
-                f"Location: {location} "
-                f"Latitude : {Latitude} "
-                f"Longitude : {Longitude} ")
+        text = (f"Mine Name: {mine_name}/n"
+                f"Date : {date_str}\n"
+                f"Time : {time_str}\n"
+                f"Location: {location}\n"
+                f"Latitude : {Latitude}\n"
+                f"Longitude : {Longitude}")
 
         # Calculate the text size
         text_bbox = draw.textbbox((0, 0), text, font=font)
@@ -517,7 +517,7 @@ def calculate():
         # Use PIL for image processing
         img = Image.open(blasting_pattern_img)
         draw = ImageDraw.Draw(img)
-        font = ImageFont.truetype("ttf/DejaVuSans.ttf", size=18)
+        font = ImageFont.truetype("ttf/DejaVuSans.ttf", size=14)
 
         ## Define the text to be added
         text = (f"Mine Name: {mine_name} "
