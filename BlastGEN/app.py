@@ -368,7 +368,7 @@ def calculate():
         font = ImageFont.truetype("ttf/DejaVuSans.ttf", size=26)
 
         # Define the text to be added
-        text = (f"Mine Name: {mine_name}/n"
+        text = (f"Mine Name: {mine_name}\n"
                 f"Date : {date_str}\n"
                 f"Time : {time_str}\n"
                 f"Location: {location}\n"
