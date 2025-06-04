@@ -785,53 +785,53 @@ def calculate():
 
     from datetime import datetime
 
-# 1. Create and store the blasting report
-report = BlastingReport(
-    mine_name=mine_name,
-    location=location,
-    date=datetime.strptime(date_str, "%Y-%m-%d").date(),
-    time=datetime.strptime(time_str, "%H:%M").time(),
-    latitude=Latitude,
-    longitude=Longitude,
-    pattern_type=pattern_type,
-    connection_type=connection_type,
-    num_holes=num_holes,
-    num_decked_holes=num_decked_holes,
-    spacing=spacing,
-    burden=burden,
-    diameter_mm=diameter_mm,
-    depth_m=depth_m,
-    explosive_type=explosive_type,
-    explosive_density=explosive_density_g_cm3,
-    total_explosive_quantity=total_explosive_quantity_kg,
-    booster_quantity=booster_quantity_g / 1000,
-    rock_density=rock_density,
-    distance=distance,
-    ppv=ppv,
-    row_delay=row_delay,
-    diagonal_delay=diagonal_delay,
-    electronic_detonators=electronic_detonators,
-    electrical_detonators=electrical_detonators,
-    volume_of_patch=volume_of_patch_m3,
-    powder_factor=powder_factor,
-    stemming_distance=stemming_distance_m,
-    charge_height=charge_height,
-    mean_fragmentation_size=mean_fragmentation_size
-)
-
-db.session.add(report)
-db.session.commit()  # Save the report and generate report.id
-
-# 2. Store the post-blast image (if available)
-if post_blast_image_base64:
-    image_record = BlastingImage(
-        report_id=report.id,
-        image_type='post_blast',
-        image_data=base64.b64decode(post_blast_image_base64),
-        image_path=None  # or set a path if you're saving to disk
+    # 1. Create and store the blasting report
+    report = BlastingReport(
+        mine_name=mine_name,
+        location=location,
+        date=datetime.strptime(date_str, "%Y-%m-%d").date(),
+        time=datetime.strptime(time_str, "%H:%M").time(),
+        latitude=Latitude,
+        longitude=Longitude,
+        pattern_type=pattern_type,
+        connection_type=connection_type,
+        num_holes=num_holes,
+        num_decked_holes=num_decked_holes,
+        spacing=spacing,
+        burden=burden,
+        diameter_mm=diameter_mm,
+        depth_m=depth_m,
+        explosive_type=explosive_type,
+        explosive_density=explosive_density_g_cm3,
+        total_explosive_quantity=total_explosive_quantity_kg,
+        booster_quantity=booster_quantity_g / 1000,
+        rock_density=rock_density,
+        distance=distance,
+        ppv=ppv,
+        row_delay=row_delay,
+        diagonal_delay=diagonal_delay,
+        electronic_detonators=electronic_detonators,
+        electrical_detonators=electrical_detonators,
+        volume_of_patch=volume_of_patch_m3,
+        powder_factor=powder_factor,
+        stemming_distance=stemming_distance_m,
+        charge_height=charge_height,
+        mean_fragmentation_size=mean_fragmentation_size
     )
-    db.session.add(image_record)
-    db.session.commit()
+    
+    db.session.add(report)
+    db.session.commit()  # Save the report and generate report.id
+    
+    # 2. Store the post-blast image (if available)
+    if post_blast_image_base64:
+        image_record = BlastingImage(
+            report_id=report.id,
+            image_type='post_blast',
+            image_data=base64.b64decode(post_blast_image_base64),
+            image_path=None  # or set a path if you're saving to disk
+        )
+        db.session.add(image_record)
+        db.session.commit()
 
 
     return render_template('plot.html',summary_table= df_summary.values,blasting_pattern=blasting_pattern_base64,single_hole_diagram=single_hole_diagram_base64,combined_hole_diagram=combined_hole_diagram_base64,animation_html=animation_html,post_blast_image=post_blast_image_base64)
