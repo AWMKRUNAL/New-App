@@ -16,8 +16,53 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 matplotlib.rcParams['animation.embed_limit'] = 2**128
 
-
 app = Flask(__name__)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://krunal:Adani@123@10.81.92.26:3312/BlastGEN'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+class BlastingReport(db.Model):
+    __tablename__ = 'blasting_reports'
+    id = db.Column(db.Integer, primary_key=True)
+    mine_name = db.Column(db.String(100))
+    location = db.Column(db.String(100))
+    date = db.Column(db.Date)
+    time = db.Column(db.Time)
+    latitude = db.Column(db.Float)
+    longitude = db.Column(db.Float)
+    pattern_type = db.Column(db.String(50))
+    connection_type = db.Column(db.String(50))
+    num_holes = db.Column(db.Integer)
+    num_decked_holes = db.Column(db.Integer)
+    spacing = db.Column(db.Float)
+    burden = db.Column(db.Float)
+    diameter_mm = db.Column(db.Float)
+    depth_m = db.Column(db.Float)
+    explosive_type = db.Column(db.String(100))
+    explosive_density = db.Column(db.Float)
+    total_explosive_quantity = db.Column(db.Float)
+    booster_quantity = db.Column(db.Float)
+    rock_density = db.Column(db.Float)
+    distance = db.Column(db.Float)
+    ppv = db.Column(db.Float)
+    row_delay = db.Column(db.Float)
+    diagonal_delay = db.Column(db.Float)
+    electronic_detonators = db.Column(db.Integer)
+    electrical_detonators = db.Column(db.Integer)
+    volume_of_patch = db.Column(db.Float)
+    powder_factor = db.Column(db.Float)
+    stemming_distance = db.Column(db.Float)
+    charge_height = db.Column(db.Float)
+    mean_fragmentation_size = db.Column(db.Float)
+
+class BlastingImage(db.Model):
+    __tablename__ = 'blasting_images'
+    id = db.Column(db.Integer, primary_key=True)
+    report_id = db.Column(db.Integer, db.ForeignKey('blasting_reports.id'))
+    image_type = db.Column(db.String(50))
+    image_data = db.Column(db.LargeBinary)
+    image_path = db.Column(db.String(255))
+
 
 UPLOAD_FOLDER = 'uploads/'  # Define your upload folder
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -741,5 +786,6 @@ def calculate():
     return render_template('plot.html',summary_table= df_summary.values,blasting_pattern=blasting_pattern_base64,single_hole_diagram=single_hole_diagram_base64,combined_hole_diagram=combined_hole_diagram_base64,animation_html=animation_html,post_blast_image=post_blast_image_base64)
 
 if __name__ == '__main__':
-    db.create_all()
+    with app.app_context():
+    db.create_all()
     app.run(debug= True )
