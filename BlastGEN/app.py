@@ -16,52 +16,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 matplotlib.rcParams['animation.embed_limit'] = 2**128
 
+
 app = Flask(__name__)
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://krunal:adani%40123@10.81.92.26:3312/BlastGEN'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
-class BlastingReport(db.Model):
-    __tablename__ = 'blasting_reports'
-    id = db.Column(db.Integer, primary_key=True)
-    mine_name = db.Column(db.String(100))
-    location = db.Column(db.String(100))
-    date = db.Column(db.Date)
-    time = db.Column(db.Time)
-    latitude = db.Column(db.Float)
-    longitude = db.Column(db.Float)
-    pattern_type = db.Column(db.String(50))
-    connection_type = db.Column(db.String(50))
-    num_holes = db.Column(db.Integer)
-    num_decked_holes = db.Column(db.Integer)
-    spacing = db.Column(db.Float)
-    burden = db.Column(db.Float)
-    diameter_mm = db.Column(db.Float)
-    depth_m = db.Column(db.Float)
-    explosive_type = db.Column(db.String(100))
-    explosive_density = db.Column(db.Float)
-    total_explosive_quantity = db.Column(db.Float)
-    booster_quantity = db.Column(db.Float)
-    rock_density = db.Column(db.Float)
-    ppv = db.Column(db.Float)
-    row_delay = db.Column(db.Float)
-    diagonal_delay = db.Column(db.Float)
-    electronic_detonators = db.Column(db.Integer)
-    electrical_detonators = db.Column(db.Integer)
-    volume_of_patch = db.Column(db.Float)
-    powder_factor = db.Column(db.Float)
-    stemming_distance = db.Column(db.Float)
-    charge_height = db.Column(db.Float)
-    mean_fragmentation_size = db.Column(db.Float)
-
-class BlastingImage(db.Model):
-    __tablename__ = 'blasting_images'
-    id = db.Column(db.Integer, primary_key=True)
-    report_id = db.Column(db.Integer, db.ForeignKey('blasting_reports.id'))
-    image_type = db.Column(db.String(50))
-    image_data = db.Column(db.LargeBinary)
-    image_path = db.Column(db.String(255))
-
 
 UPLOAD_FOLDER = 'uploads/'  # Define your upload folder
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -782,60 +738,8 @@ def calculate():
     elif deck_charging.lower() == "no":
         combined_hole_diagram_base64 = None
 
-    from datetime import datetime
-
-    # 1. Create and store the blasting report
-    report = BlastingReport(
-        mine_name=mine_name,
-        location=location,
-        date=datetime.strptime(date_str, "%Y-%m-%d").date(),
-        time=datetime.strptime(time_str, "%H:%M").time(),
-        latitude=Latitude,
-        longitude=Longitude,
-        pattern_type=pattern_type,
-        connection_type=connection_type,
-        num_holes=num_holes,
-        num_decked_holes=num_decked_holes,
-        spacing=spacing,
-        burden=burden,
-        diameter_mm=diameter_mm,
-        depth_m=depth_m,
-        explosive_type=explosive_type,
-        explosive_density=explosive_density_g_cm3,
-        total_explosive_quantity=total_explosive_quantity_kg,
-        booster_quantity=booster_quantity_g / 1000,
-        rock_density=rock_density,
-        ppv=ppv,
-        row_delay=row_delay,
-        diagonal_delay=diagonal_delay,
-        electronic_detonators=electronic_detonators,
-        electrical_detonators=electrical_detonators,
-        volume_of_patch=volume_of_patch_m3,
-        powder_factor=powder_factor,
-        stemming_distance=stemming_distance_m,
-        charge_height=charge_height,
-        mean_fragmentation_size=mean_fragmentation_size
-    )
-    
-    db.session.add(report)
-    db.session.commit()  # Save the report and generate report.id
-    
-    # 2. Store the post-blast image (if available)
-    if post_blast_image_base64:
-        image_record = BlastingImage(
-            report_id=report.id,
-            image_type='post_blast',
-            image_data=base64.b64decode(post_blast_image_base64),
-            image_path=None  # or set a path if you're saving to disk
-        )
-        db.session.add(image_record)
-        db.session.commit()
-
-
     return render_template('plot.html',summary_table= df_summary.values,blasting_pattern=blasting_pattern_base64,single_hole_diagram=single_hole_diagram_base64,combined_hole_diagram=combined_hole_diagram_base64,animation_html=animation_html,post_blast_image=post_blast_image_base64)
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        app.run(debug=True)
-
+    db.create_all()
+    app.run(debug= True )
