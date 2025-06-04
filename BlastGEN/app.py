@@ -18,7 +18,7 @@ matplotlib.rcParams['animation.embed_limit'] = 2**128
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://krunal:adani@123@10.81.92.26:3312/BlastGEN'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://krunal:adani%40123@10.81.92.26:3312/BlastGEN'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 class BlastingReport(db.Model):
