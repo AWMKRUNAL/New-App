@@ -43,7 +43,6 @@ class BlastingReport(db.Model):
     total_explosive_quantity = db.Column(db.Float)
     booster_quantity = db.Column(db.Float)
     rock_density = db.Column(db.Float)
-    distance = db.Column(db.Float)
     ppv = db.Column(db.Float)
     row_delay = db.Column(db.Float)
     diagonal_delay = db.Column(db.Float)
@@ -806,7 +805,6 @@ def calculate():
         total_explosive_quantity=total_explosive_quantity_kg,
         booster_quantity=booster_quantity_g / 1000,
         rock_density=rock_density,
-        distance=distance,
         ppv=ppv,
         row_delay=row_delay,
         diagonal_delay=diagonal_delay,
