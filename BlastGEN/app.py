@@ -1,7 +1,7 @@
 import base64
 import os
 from io import BytesIO
-from tkinter import Image
+
 
 from PIL import Image,ImageDraw,ImageFont
 import matplotlib
@@ -743,3 +743,4 @@ def calculate():
 if __name__ == '__main__':
     db.create_all()
     app.run(debug= True )
+
